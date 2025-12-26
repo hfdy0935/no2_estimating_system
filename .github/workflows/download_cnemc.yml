@@ -6,7 +6,7 @@ name: download_cnemc
 on:
   workflow_dispatch:
   schedule:
-    - cron: "30 15 * * *"
+    - cron: "35 * * * *"
 
 permissions:
   contents: write
