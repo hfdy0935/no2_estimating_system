@@ -3,7 +3,7 @@ from typing import Final, cast, final
 import ee
 
 from src.constant import ChinaRect, RectBound
-from src.config import secret_config
+from src.config import SecretConfig
 
 # region GEEDownloader
 
@@ -13,10 +13,10 @@ class GEEDownloader:
     def __init__(self):
         self.logger = logging.getLogger()
         # gee初始化
-        print('>>>env', secret_config.gee_credentials)
+        print('>>>env', SecretConfig.gee_credentials, '>>>')
         ee.Authenticate()
         ee.Initialize(
-            project='ee-hfdy09354121794', credentials=secret_config.gee_credentials
+            project='ee-hfdy09354121794', credentials=SecretConfig.gee_credentials
         )
         # 研究区
         self.china_rect: Final[RectBound] = ChinaRect
