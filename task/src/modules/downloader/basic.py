@@ -13,8 +13,11 @@ class GEEDownloader:
     def __init__(self):
         self.logger = logging.getLogger()
         # gee初始化
+        print('>>>env', secret_config.gee_credentials)
         ee.Authenticate()
-        ee.Initialize(project='ee-hfdy09354121794',credentials=secret_config.gee_credentials)
+        ee.Initialize(
+            project='ee-hfdy09354121794', credentials=secret_config.gee_credentials
+        )
         # 研究区
         self.china_rect: Final[RectBound] = ChinaRect
         self.china_rect_region: Final[ee.geometry.Geometry] = (
