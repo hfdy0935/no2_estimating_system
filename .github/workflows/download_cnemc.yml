@@ -1,0 +1,42 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: download_cnemc
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 15 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_fetch_cnemc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          working-directory: ./task
+      - name: install python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "./task/.python-version"
+      - name: download cnemc
+        run: |
+          cd ./task
+          uv run download_cnemc.py
+      - name: commit changes
+        run: |
+          git config --global user.email 1952620883@qq.com
+          git config --global user.name hfdy
+          git add shared/data_source/cnemc
+          git commit -m "download cnemc" -a
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{secrets.GIT_PUSH_TOKEN}}

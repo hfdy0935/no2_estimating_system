@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        // py导包可以直接识别到src下面，因为后端根目录是server
+        "./server"
+    ]
+}
