@@ -14,7 +14,7 @@ def init_ee_credentials():
         )
     # 写入
     path = Path.home() / '.config' / 'earthengine' / 'credentials'
-    path.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, 'w') as f:
         f.write(SecretConfig.gee_credentials)
     ee.Authenticate()
