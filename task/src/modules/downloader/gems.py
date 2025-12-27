@@ -263,5 +263,5 @@ class GEMSDownloader:
 
 
 def download_gems(dt: Maybe[datetime] = None):
-    downloader = GEMSDownloader(dt=dt or time_util.utc_now(), fetcher='key')
+    downloader = GEMSDownloader(dt=dt or time_util.utc_now(), fetcher='browser')
     downloader.download()
