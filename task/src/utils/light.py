@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 import datetime as dt_pkg
 from functools import lru_cache
 import json
@@ -584,17 +584,23 @@ class DataRecordUtil:
 
     @property
     @lru_cache
-    def range(self) -> list[datetime]:
-        """获取开始和结束时间"""
+    def dt_ls(self) -> list[datetime]:
+        """获取时间列表"""
         ls = self.get()
         if len(ls) == 0:
             return []
-        return [time_util.ymd2dt(ls[0]), time_util.ymd2dt(ls[-1])]
+        start = time_util.ymd2dt(ls[0])
+        end = time_util.ymd2dt(ls[-1])
+        res = []
+        while start <= end:
+            res.append(start)
+            start += timedelta(days=1)
+        return res
 
     @property
     @lru_cache
     def start(self):
-        r = self.range
+        r = self.dt_ls
         if len(r) == 0:
             return None
         return r[0]
@@ -602,7 +608,7 @@ class DataRecordUtil:
     @property
     @lru_cache
     def end(self):
-        r = self.range
+        r = self.dt_ls
         if len(r) == 0:
             return None
         return r[-1]

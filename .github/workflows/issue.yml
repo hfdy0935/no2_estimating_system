@@ -10,7 +10,7 @@ permissions:
   contents: write # 若需写入数据/记录，添加该权限
 
 jobs:
-  extract_issue_info:
+  handle_issue:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
