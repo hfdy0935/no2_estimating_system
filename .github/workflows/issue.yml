@@ -1,4 +1,4 @@
-name: 监听Issue并提取信息
+name: issue_data_getter
 on:
   issues:
     types: [opened, edited] # 触发时机：Issue被创建/编辑时
