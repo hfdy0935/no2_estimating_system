@@ -38,7 +38,7 @@ jobs:
           git config --global user.name hfdy
           git pull origin main
           git add shared/data_source/geoscf
-          git commit -m "download cnemc" -a
+          git commit -m "download geoscf" -a
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
