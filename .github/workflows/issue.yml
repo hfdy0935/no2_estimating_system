@@ -28,4 +28,6 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }} # 当前触发的Issue编号
           REPO_FULL_NAME: ${{ github.repository }} # 仓库名（hfdy0935/no2_estimating_system）
           EMAIL_SERVICE_CODE: ${{ secrets.EMAIL_SERVICE_CODE }} # 邮箱验证码
-        run: uv run handle_issue.py
+        run: |
+          cd ./task
+          uv run handle_issue.py
