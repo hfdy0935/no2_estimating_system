@@ -30,12 +30,16 @@
 ## 4. 数据自助获取
 
 - 监听`issue`，提取邮箱和数据范围，触发action，打包数据发送至该邮箱
-- 格式：
+- `issue`格式：
   1. 标题为`req_data`
   2. 内容为`yyyymmdd, xxx@xxx.com`或`yyyymmdd-yyyymmdd, xxx@xxx.com`，表示想要的数据范围和要发送的邮箱
 - 不论成功与否，都会收到`issue`自动回复
 - 成功后`issue`会自动关闭
 
+|      流程       |              截图               |
+| :-------------: | :-----------------------------: |
+| `issue`自动回复 | ![alt text](assets/image-1.png) |
+|      邮件       |  ![alt text](assets/image.png)  |
 
 ## 5. 其他
 
