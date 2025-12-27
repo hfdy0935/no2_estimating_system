@@ -106,7 +106,6 @@ class Emailtool:
             path = path_util.get_yymd_path_under_est(['tif'], dt, extension='tif')
             if not path.exists():
                 continue
-            # 添加到压缩文件
             zf.write(path, arcname=path.name)
         zip_buffer.seek(0)
         return zip_buffer
@@ -123,7 +122,7 @@ class Emailtool:
                     issue_time=f'UTC {issue_info.updated_at}',
                     issue_username=issue_info.username,
                     issue_content=issue_info.content,
-                    issue_link=f"https://api.github.com/{SecretConfig.repo_full_name}/issues/{SecretConfig.issue_number}",
+                    issue_link=f"https://github.com/{SecretConfig.repo_full_name}/issues/{SecretConfig.issue_number}",
                     cover=content_info.cover,
                     available_start=available_start,
                     available_end=available_end,
@@ -181,11 +180,10 @@ class IssueTool:
     def reply(self, msg: str):
         resp = requests.post(
             self.reply_url,
-            data=json.dumps({'body': f'**[自动回复]** {msg}'}),
+            json={'body': f'**[自动回复]** {msg}'},
             headers=headers,
         )
-        print('>>>', resp.status_code, resp.text, resp.reason)
-        if resp.status_code == 201:
+        if resp.status_code >= 200 and resp.status_code < 300:
             log('回复成功')
         else:
             log('回复失败')
@@ -208,9 +206,7 @@ class IssueTool:
 
     def reply_fetch_fail(self):
         log(f'请求失败')
-        self.reply(
-            f'issue#{SecretConfig.issue_number}信息获取失败，请稍后重试或联系作者'
-        )
+        self.reply('issue信息获取失败，请稍后重试或联系作者')
 
     def reply_success(self, msg: str):
         log(f'发送数据成功')
@@ -279,8 +275,4 @@ class IssueHandler:
 
 def handle_issue():
     handler = IssueHandler()
-    # handler.run()
-    try:
-        handler.issue_tool.reply('111')
-    except Exception as e:
-        print('>>>', e)
+    handler.run()

@@ -4,8 +4,7 @@ on:
     types: [opened, edited] # 触发时机：Issue被创建/编辑时
 
 permissions:
-  issues: read # 授予读取Issue的权限
-  contents: write # 若需写入数据/记录，添加该权限
+  issues: write # 可以回复issue
 
 jobs:
   handle_issue:
