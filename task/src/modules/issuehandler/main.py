@@ -201,7 +201,7 @@ class IssueTool:
     def reply_process_error(self, e: Exception):
         """回复处理失败"""
         log(
-            f'处理失败，{e.args[0]}',
+            f'处理失败，{e.args}',
         )
         self.reply(f'获取数据失败，请确保issue格式符合要求，或稍后重试，或联系作者')
 
@@ -257,7 +257,6 @@ class IssueHandler:
             self.issue_tool.reply_fetch_fail()
             return
         try:
-            breakpoint()
             content_info = self._parse_issue_content(issue_info.content)
             if len(content_info.get_tru_send_dates()) == 0:
                 self.issue_tool.reply_no_data()
