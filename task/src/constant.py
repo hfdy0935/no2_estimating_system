@@ -23,12 +23,16 @@ SHARED_DIR: Final[str] = os.path.join('..', 'shared')
 """
 
 # geojson位置
-CHINA_GEOJSON_PATH = Path(SHARED_DIR, 'data_source', 'geojson', 'china.geojson')
-WORLD_GEOJSON_PATH = Path(SHARED_DIR, 'data_source', 'geojson', 'world.geojson')
+CHINA_GEOJSON_PATH: Final[Path] = Path(
+    SHARED_DIR, 'data_source', 'geojson', 'china.geojson'
+)
+WORLD_GEOJSON_PATH: Final[Path] = Path(
+    SHARED_DIR, 'data_source', 'geojson', 'world.geojson'
+)
 
 # 模型位置
-REC_MODEL_PATH = Path(SHARED_DIR, 'reconstruct', 'model', 'model.cbm')
-EST_MODEL_PATH = Path(SHARED_DIR, 'estimate', 'model', 'model.cbm')
+REC_MODEL_PATH: Final[Path] = Path(SHARED_DIR, 'reconstruct', 'model', 'model.cbm')
+EST_MODEL_PATH: Final[Path] = Path(SHARED_DIR, 'estimate', 'model', 'model.cbm')
 
 
 # 空间分辨率

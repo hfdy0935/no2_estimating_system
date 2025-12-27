@@ -3,7 +3,7 @@ import datetime as dt_pkg
 import logging
 import os
 from pathlib import Path
-from typing import Final, Self
+from typing import Self
 import pandas as pd
 from fastparquet import write as write_parquet
 from zoneinfo import ZoneInfo
@@ -22,9 +22,9 @@ logging.basicConfig(
 
 class PathUtil:
     def __init__(self):
-        self.ds: Final[Path] = Path(SHARED_DIR, "data_source")
-        self.rec: Final[Path] = Path(SHARED_DIR, "reconstruct")
-        self.est: Final[Path] = Path(SHARED_DIR, 'estimate')
+        self.ds = Path(SHARED_DIR, "data_source")
+        self.rec = Path(SHARED_DIR, "reconstruct")
+        self.est = Path(SHARED_DIR, 'estimate')
 
     def ensure_path_exist(self, path: Path):
         """确保目录 or 文件夹所在的目录 存在"""

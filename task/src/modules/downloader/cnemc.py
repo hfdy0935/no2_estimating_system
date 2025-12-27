@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 import logging
 import os
-from typing import Final
 import requests
 import numpy as np
 import pandas as pd
@@ -25,7 +24,7 @@ class CNEMCDownloader:
 
     def __init__(self):
         # 获取历史数据的url
-        self.base_url: Final[str] = (
+        self.base_url = (
             'https://air.cnemc.cn:18007/HourChangesPublish/GetAQIHistoryByConditionHis'
         )
         self.no2_column = 'cnemc_no2'

@@ -6,7 +6,7 @@ from src.modules.estimator.main import estimate_no2
 
 from src.utils.light import time_util
 
-# 每天utc 10:00自动执行
+
 if __name__ == '__main__':
     dt = time_util.utc_now()
     args = sys.argv

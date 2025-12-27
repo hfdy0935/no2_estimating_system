@@ -3,7 +3,7 @@ from datetime import datetime
 from io import BytesIO
 import json
 import logging
-from typing import Final, Literal
+from typing import Literal
 import pandas as pd
 import requests
 from netCDF4 import Dataset
@@ -32,12 +32,12 @@ class GEMSFetcherType(ABC):
         ...
 
     @abstractmethod
-    def fetch_data(self, ymdhm: str, body: dict) -> BytesIO:
+    def fetch_data(self, ymdhm: str, params: dict) -> BytesIO:
         """下载单个时刻的gems数据
 
         Args:
             ymdhm (str): 需要具体到分钟
-            body (dict): 请求体额外字段
+            params (dict): 之前获取请求时间的结果
 
         Returns:
             BytesIO: 响应内容
@@ -50,13 +50,9 @@ class GEMSKeyFetcher(GEMSFetcherType):
 
     def __init__(self):
         # 请求数据的url
-        self.data_url: Final[str] = (
-            'https://nesc.nier.go.kr:38032/api/GK2/L2/NO2/data/getFileItem.do?date={yyyymmddhhmm}&key={key}'
-        )
+        self.data_url = 'https://nesc.nier.go.kr:38032/api/GK2/L2/NO2/data/getFileItem.do?date={yyyymmddhhmm}&key={key}'
         # 查询观测时间的url，时间左闭右闭
-        self.obs_time_url: Final[str] = (
-            'https://nesc.nier.go.kr:38032/api/GK2/L2/NO2/data/getFileDateList.do?sDate={start}&eDate={end}&format=json&key={key}'
-        )
+        self.obs_time_url = 'https://nesc.nier.go.kr:38032/api/GK2/L2/NO2/data/getFileDateList.do?sDate={start}&eDate={end}&format=json&key={key}'
         self.session = requests.session()
 
     def get_obs_params(self, dt: datetime) -> list[tuple[datetime, dict]]:
@@ -91,11 +87,9 @@ class GEMSBrowserFetcher(GEMSFetcherType):
 
     def __init__(self):
         # 请求数据的url
-        self.data_url: Final[str] = 'https://nesc.nier.go.kr/en/svc/image/dwld.do'
+        self.data_url = 'https://nesc.nier.go.kr/en/svc/image/dwld.do'
         # 查询观测时间的url，时间左闭右闭
-        self.obs_time_url: Final[str] = (
-            'https://nesc.nier.go.kr/en/data/search/listData.do'
-        )
+        self.obs_time_url = 'https://nesc.nier.go.kr/en/data/search/listData.do'
         self.session = requests.session()
         self.headers = headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
@@ -141,11 +135,11 @@ class GEMSBrowserFetcher(GEMSFetcherType):
         # }
         return res
 
-    def fetch_data(self, ymdhm: str, body: dict) -> BytesIO:
+    def fetch_data(self, ymdhm: str, params: dict) -> BytesIO:
         data = {
-            "outputInnb": body['outputInnb'],
+            "outputInnb": params['outputInnb'],
             "date": ymdhm,
-            "keyword": body['kwrdParamtrValue'],
+            "keyword": params['kwrdParamtrValue'],
             "svcSe": "03",
             "passSvc": "",
         }
@@ -172,7 +166,7 @@ class GEMSDownloader:
         self.fetcher: GEMSFetcherType = (
             GEMSKeyFetcher() if fetcher == 'key' else GEMSBrowserFetcher()
         )
-        self.no2_column: Final[str] = 'gems_no2'
+        self.no2_column = 'gems_no2'
         self.dt = dt
         self.ymd = time_util.dt2ymd(dt)
 

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Final, cast
+from typing import cast
 import ee
 import geemap
 import numpy as np
@@ -28,8 +28,8 @@ class GEOSCFDownloader(GEEDownloader):
 
     def __init__(self, dt: datetime):
         super().__init__()
-        self.gee_no2_column: Final[str] = 'TROPCOL_NO2'
-        self.no2_column: Final[str] = 'geoscf_no2'
+        self.gee_no2_column = 'TROPCOL_NO2'
+        self.no2_column = 'geoscf_no2'
         self.dt = self._dt2available(dt)
         self.ymd = time_util.dt2ymd(self.dt)
 

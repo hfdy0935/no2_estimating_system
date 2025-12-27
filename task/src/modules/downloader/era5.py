@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Final, cast
+from typing import cast
 import ee
 import geemap
 import numpy as np
@@ -31,7 +31,7 @@ class ERA5Downloader(GEEDownloader):
     def __init__(self, dt: datetime):
         super().__init__()
         # gee中的波段名
-        self.gee_era5_columns: Final[list[str]] = [
+        self.gee_era5_columns = [
             'u_component_of_wind_10m',
             'v_component_of_wind_10m',
             'dewpoint_temperature_2m',
@@ -41,7 +41,7 @@ class ERA5Downloader(GEEDownloader):
             'total_column_water',
         ]
         # 最终df中的列名
-        self.era5_columns: Final[list[str]] = [
+        self.era5_columns = [
             'u10',
             'v10',
             'd2m',
@@ -51,7 +51,7 @@ class ERA5Downloader(GEEDownloader):
             'tcw',
         ]
         # df列名和gee列名映射
-        self.gee_era5_columns_map: Final[dict[str, str]] = {
+        self.gee_era5_columns_map = {
             'u_component_of_wind_10m': 'u10',
             'v_component_of_wind_10m': 'v10',
             'dewpoint_temperature_2m': 'd2m',

@@ -1,33 +1,41 @@
 import logging
-from typing import Final, cast, final
+from pathlib import Path
+from typing import cast, final
 import ee
 
 from src.constant import ChinaRect, RectBound
-from src.config import SecretConfig
+from task.src.config import SecretConfig
 
-# region GEEDownloader
+
+def init_ee_credentials():
+    if SecretConfig.gee_credentials is None:
+        raise RuntimeError(
+            '环境变量缺少GEE_CREDENTIALS，格式为json字符串，来源：GEE初次浏览器认证之后生成在~/.config/earthengine/credentials'
+        )
+    # 写入
+    path = Path.home() / '.config' / 'earthengine' / 'credentials'
+    path.mkdir(parents=True, exist_ok=True)
+    with open(path, 'w') as f:
+        f.write(SecretConfig.gee_credentials)
+    ee.Authenticate()
+    ee.Initialize(
+        project='ee-hfdy09354121794',
+    )
 
 
 class GEEDownloader:
 
     def __init__(self):
         self.logger = logging.getLogger()
-        # gee初始化
-        print('>>>env', SecretConfig.gee_credentials, '>>>')
-        ee.Authenticate()
-        ee.Initialize(
-            project='ee-hfdy09354121794', credentials=SecretConfig.gee_credentials
-        )
+        init_ee_credentials()
         # 研究区
-        self.china_rect: Final[RectBound] = ChinaRect
-        self.china_rect_region: Final[ee.geometry.Geometry] = (
-            ee.geometry.Geometry.Rectangle(
-                coords=(
-                    ChinaRect.minlon,
-                    ChinaRect.minlat,
-                    ChinaRect.maxlon,
-                    ChinaRect.maxlat,
-                )
+        self.china_rect = ChinaRect
+        self.china_rect_region = ee.geometry.Geometry.Rectangle(
+            coords=(
+                ChinaRect.minlon,
+                ChinaRect.minlat,
+                ChinaRect.maxlon,
+                ChinaRect.maxlat,
             )
         )
 
@@ -61,6 +69,3 @@ class GEEDownloader:
         min_lat = min([p[1] for p in bounds])
         max_lat = max([p[1] for p in bounds])
         return RectBound(min_lon, max_lon, min_lat, max_lat)
-
-
-# endregion
