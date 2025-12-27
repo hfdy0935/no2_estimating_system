@@ -102,7 +102,6 @@ class Emailtool:
         """
         zip_buffer = BytesIO()
         zf = zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED)
-        breakpoint()
         for dt in param.get_tru_send_dates():
             path = path_util.get_yymd_path_under_est(['tif'], dt, extension='tif')
             if not path.exists():
