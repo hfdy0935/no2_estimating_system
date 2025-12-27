@@ -1,12 +1,12 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: download_cnemc
+name: download_era5
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "40 * * * *"
+    - cron: "0 10 * * *"
 
 permissions:
   contents: write
@@ -26,17 +26,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version-file: "./task/.python-version"
-      - name: Download cnemc
+      - name: Download era5
+        env:
+          GEE_CREDENTIALS: ${{ secrets.GEE_CREDENTIALS }}
         run: |
           cd ./task
-          uv run download_cnemc.py
+          uv run download_era5.py
       - name: Commit changes
         run: |
           git config --global user.email 1952620883@qq.com
           git config --global user.name hfdy
           git pull origin main
-          git add shared/data_source/cnemc
-          git commit -m "download cnemc" -a
+          git add shared/data_source/era5
+          git commit -m "download era5" -a
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:

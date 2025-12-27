@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 from typing import cast, final
 import ee
+from ee.oauth import get_credentials_path
 
 from src.constant import ChinaRect, RectBound
 from src.config import SecretConfig
@@ -10,10 +11,10 @@ from src.config import SecretConfig
 def init_ee_credentials():
     if SecretConfig.gee_credentials is None:
         raise RuntimeError(
-            '环境变量缺少GEE_CREDENTIALS，格式为json字符串，来源：GEE初次浏览器认证之后生成在~/.config/earthengine/credentials'
+            f'环境变量缺少GEE_CREDENTIALS，可以在GEE初次浏览器认证之后的{get_credentials_path()}中获取'
         )
     # 写入
-    path = Path.home() / '.config' / 'earthengine' / 'credentials'
+    path = Path(get_credentials_path())
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, 'w') as f:
         f.write(SecretConfig.gee_credentials)
