@@ -44,3 +44,8 @@
 2. GEE的认证文件和
 3. `git push`的token，名为`GITHUB_TOKEN`，actions流程中会自动生成，不用配置
 4. 邮箱`SMTP`的验证码
+
+
+## 6. 链接
+
+GitHub API 文档：https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28
