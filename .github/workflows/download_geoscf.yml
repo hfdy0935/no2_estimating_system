@@ -36,6 +36,7 @@ jobs:
         run: |
           git config --global user.email 1952620883@qq.com
           git config --global user.name hfdy
+          git pull origin main
           git add shared/data_source/geoscf
           git commit -m "download cnemc" -a
       - name: Push changes
