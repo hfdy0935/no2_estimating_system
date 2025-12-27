@@ -339,23 +339,6 @@ class DataFrameUtil:
         )
         return pd.concat([era5_part1, era5_part2, era5_part3, era5_part4], axis=1)
 
-    def read_est(self, start: datetime, end: datetime) -> list[pd.DataFrame]:
-        """读取估算结果
-
-        Args:
-            start (datetime): _description_
-            end (datetime): _description_
-
-        Raises:
-            ValueError: _description_
-
-        Returns:
-            list[pd.DataFrame]: _description_
-        """
-        start_year = start.year
-        end_year = end.year
-        # TODO
-
 
 df_util = DataFrameUtil()
 
