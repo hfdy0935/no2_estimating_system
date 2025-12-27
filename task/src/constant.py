@@ -40,4 +40,4 @@ RESOLUTION: Final[float] = 0.05
 
 
 # issue自动回复白名单
-IssueWhiteUsernameList = ['hfdy0935']
+IssueUsernameWhiteList = ['hfdy0935']

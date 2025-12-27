@@ -16,7 +16,7 @@ from email.mime.text import MIMEText
 import requests
 from src.config import SecretConfig
 from src.utils.light import time_util, est_no2_util, path_util
-from src.constant import SHARED_DIR, IssueWhiteUsernameList
+from src.constant import SHARED_DIR, IssueUsernameWhiteList
 
 logger = logging.getLogger()
 # 配置见https://docs.github.com/zh/rest/issues/issues?apiVersion=2022-11-28#get-an-issue
@@ -251,7 +251,7 @@ class IssueHandler:
     def run(self):
         issue_info = self.issue_tool.fetch_issue_info()
         # 判断是否在白名单中
-        if issue_info.username not in IssueWhiteUsernameList:
+        if issue_info.username not in IssueUsernameWhiteList:
             log(f'非白名单用户，已忽略')
             self.issue_tool.reply('你不是白名单用户，暂无权限，请联系作者')
             return
@@ -278,4 +278,8 @@ class IssueHandler:
 
 def handle_issue():
     handler = IssueHandler()
-    handler.run()
+    # handler.run()
+    try:
+        handler.issue_tool.reply('111')
+    except Exception as e:
+        print('>>>', e)
