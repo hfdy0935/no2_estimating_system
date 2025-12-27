@@ -4,7 +4,7 @@ from typing import cast, final
 import ee
 
 from src.constant import ChinaRect, RectBound
-from task.src.config import SecretConfig
+from src.config import SecretConfig
 
 
 def init_ee_credentials():
