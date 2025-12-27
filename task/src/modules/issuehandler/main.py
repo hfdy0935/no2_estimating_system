@@ -184,6 +184,7 @@ class IssueTool:
             data=json.dumps({'body': f'**[自动回复]** {msg}'}),
             headers=headers,
         )
+        print('>>>', resp.status_code, resp.text, resp.reason)
         if resp.status_code == 201:
             log('回复成功')
         else:
