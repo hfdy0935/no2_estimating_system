@@ -6,7 +6,13 @@ import numpy as np
 import pandas as pd
 
 from src.types import Maybe
-from src.utils.light import time_util, parquet_util, path_util, df_util, resample_util
+from src.utils.light import (
+    time_util,
+    parquet_util,
+    path_util,
+    df_util,
+    resample_util,
+)
 
 
 logger = logging.getLogger()
@@ -17,9 +23,6 @@ class CNEMCDownloader:
 
     >>> 参考github cnemc仓库的cicd流程
     >>> 每小时下载前一天中没下载过的，考虑缺失没发布的情况
-
-    Returns:
-        _type_: _description_
     """
 
     def __init__(self):

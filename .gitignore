@@ -20,5 +20,4 @@ shared/estimate/pq/2023/*
 shared/estimate/tif/2023/*
 shared/reconstruct/pred/2023/*
 shared/reconstruct/rec/2023/*
-*.tif
 *.ipynb

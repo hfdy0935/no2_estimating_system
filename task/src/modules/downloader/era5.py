@@ -23,10 +23,9 @@ class ERA5Downloader(GEEDownloader):
     **下载**
     >>> 频率：每天
     >>> 时间：utc_day-7
-
-    Returns:
-        _type_: _description_
     """
+
+    diff = timedelta(days=-7)
 
     def __init__(self, dt: datetime):
         super().__init__()
@@ -78,7 +77,7 @@ class ERA5Downloader(GEEDownloader):
             datetime: _description_
         """
         dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
-        return dt - timedelta(days=7)
+        return dt + self.diff
 
     def _handle_era5(self, image: ee.image.Image, dt: datetime) -> pd.DataFrame:
         """处理某一小时的era5 image，转为dataframe

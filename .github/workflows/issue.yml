@@ -1,0 +1,30 @@
+name: 监听Issue并提取信息
+on:
+  issues:
+    types: [opened, edited] # 触发时机：Issue被创建/编辑时
+  issue_comment:
+    types: [created] # 监听Issue评论（若需从评论提取信息）
+
+permissions:
+  issues: read # 授予读取Issue的权限
+  contents: write # 若需写入数据/记录，添加该权限
+
+jobs:
+  extract_issue_info:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          working-directory: ./task
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "./task/.python-version"
+      - name: Run script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }} # 当前触发的Issue编号
+          REPO_FULL_NAME: ${{ github.repository }} # 仓库名（如hfdy0935/no2_estimating_system）
+        run: python scripts/extract_issue_info.py

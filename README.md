@@ -16,6 +16,7 @@
 | `rec_no2` | /          | 跟随`era5`    | 7天前           | 1h, 0.05°; 24h, china   | `shared/reconstruct/rec/{year}/{ymd}.parquet`              |
 | `est_no2` | /          | 跟随`rec_no2` | 7天前           | 1h, 0.05°; 24h, china   | `shared/estimate/(pq)\|(df)/{year}/{ymd}.parquet`          |
 
+> 20251218、20251219、20251220三天测试数据已准备好，后续等自动请求
 
 
 ## 3. 📈前端展示

@@ -21,10 +21,9 @@ class GEOSCFDownloader(GEEDownloader):
     **下载**
     >>> 频率：每天
     >>> 时间：utc_day-5
-
-    Returns:
-        _type_: _description_
     """
+
+    diff = timedelta(days=-5)
 
     def __init__(self, dt: datetime):
         super().__init__()
@@ -46,7 +45,7 @@ class GEOSCFDownloader(GEEDownloader):
             datetime: _description_
         """
         dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
-        return dt - timedelta(days=5)
+        return dt + self.diff
 
     def _handle_geoscf(self, image: ee.image.Image, dt: datetime) -> pd.DataFrame:
         """处理某一小时的geoscf image，转为dataframe

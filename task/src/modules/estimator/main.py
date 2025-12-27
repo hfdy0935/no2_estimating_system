@@ -4,7 +4,13 @@ from pathlib import Path
 from catboost import CatBoostRegressor
 import pandas as pd
 from scipy.spatial import cKDTree  # type: ignore
-from src.utils.light import time_util, parquet_util, path_util, df_util
+from src.utils.light import (
+    time_util,
+    parquet_util,
+    path_util,
+    df_util,
+    surface_no2_util,
+)
 from src.constant import EST_MODEL_PATH
 
 logger = logging.getLogger()
@@ -126,6 +132,7 @@ class Estimator:
         savepath = path_util.get_yymd_path_under_est(['tif'], self.dt, extension='tif')
         df_util.df2tif2save(df=pred, value_column=self.y_column, savepath=savepath)
         self.log(f"估算成功，tif已保存至{path_util.relative2logpath(savepath)}")
+        surface_no2_util.log(msg=self.ymd)
 
 
 def estimate_no2(dt: datetime):

@@ -37,7 +37,7 @@ jobs:
           git config --global user.email 1952620883@qq.com
           git config --global user.name hfdy
           git pull origin main
-          git add shared/data_source/gems
+          git add shared/data_source/gems shared/data_record.json
           git commit -m "download gems" -a
       - name: Push changes
         uses: ad-m/github-push-action@master

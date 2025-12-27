@@ -1,8 +1,11 @@
+from contextlib import contextmanager
 from datetime import datetime
 import datetime as dt_pkg
+import json
 import logging
 import os
 from pathlib import Path
+import time
 from typing import Self
 import pandas as pd
 from fastparquet import write as write_parquet
@@ -68,7 +71,7 @@ class PathUtil:
         extension: str = 'parquet',
         midpath: str = '',
     ) -> Path:
-        """拼接在`shared/data_source/xxx/xxx/`之后的路径，末尾满足year/[{midpath}/]ymd.{extension}格式
+        """拼接在`shared/data_source/xxx/xxx/`之后的路径，末尾满足`year/[{midpath}/]ymd.{extension}`格式
 
         Args:
             pre (list[str | Path]): 前缀列表，每一级路径分开，即上面的xxx/xxx
@@ -109,7 +112,7 @@ class PathUtil:
     def get_yymd_path_under_rec(
         self, pre: list[str | Path], dt: datetime, extension: str = 'parquet'
     ) -> Path:
-        """拼接在`shared/reconstruct/xxx/xxx/`之后的路径，末尾满足year/ymd.{extension}格式
+        """拼接在`shared/reconstruct/xxx/xxx/`之后的路径，末尾满足`year/ymd.{extension}`格式
 
         Args:
             pre (str): 前缀列表，每一级路径分开，即上面的xxx/xxx
@@ -138,7 +141,7 @@ class PathUtil:
     def get_yymd_path_under_est(
         self, pre: list[str | Path], dt: datetime, extension: str = 'parquet'
     ) -> Path:
-        """拼接在`shared/estimate/xxx/xxx/`之后的路径，末尾满足year/ymd.{extension}格式
+        """拼接在`shared/estimate/xxx/xxx/`之后的路径，末尾满足`year/ymd.{extension}`格式
 
         Args:
             pre (str): 前缀列表，每一级路径分开，即上面的xxx/xxx
@@ -250,13 +253,13 @@ class DataFrameUtil:
             pd.DataFrame: _description_
         """
         lat_idx = np.arange(
-            start=ChinaRect.maxlat,
+            ChinaRect.maxlat,
             stop=ChinaRect.minlat - 0.01,
             step=-RESOLUTION,
             dtype=np.float64,
         )
         lon_idx = np.arange(
-            start=ChinaRect.minlon,
+            ChinaRect.minlon,
             stop=ChinaRect.maxlon + 0.01,
             step=RESOLUTION,
             dtype=np.float64,
@@ -334,6 +337,23 @@ class DataFrameUtil:
             path_util.get_yymd_path_under_ds(['era5'], dt, midpath='part4')
         )
         return pd.concat([era5_part1, era5_part2, era5_part3, era5_part4], axis=1)
+
+    def read_est(self, start: datetime, end: datetime) -> list[pd.DataFrame]:
+        """读取估算结果
+
+        Args:
+            start (datetime): _description_
+            end (datetime): _description_
+
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            list[pd.DataFrame]: _description_
+        """
+        start_year = start.year
+        end_year = end.year
+        # TODO
 
 
 df_util = DataFrameUtil()
@@ -532,3 +552,34 @@ def fill_with_residual_softnorm(
     filled_corrected[mask_obs] = obs[mask_obs]
     # 校正值、残差、obs区域掩膜
     return filled_corrected, residual_est, mask_obs
+
+
+class DataRecordUtil:
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def log(self, msg: str):
+        """写入日志"""
+        _data = open(self.path, 'r', encoding='utf-8').read() or '[]'
+        data: list = json.loads(_data)
+        data.append(msg)
+        json.dump(
+            data,
+            open(self.path, 'w', encoding='utf-8'),
+            indent=4,
+            ensure_ascii=False,
+        )
+
+    @contextmanager
+    def log_with_time(self, msg: str):
+        """记录当前时间和耗时"""
+        start = time.time()
+        yield
+        end = time.time()
+        self.log(f'[{time_util.dt2ymdhm()}] {msg} {end - start:.2f}s')
+
+
+# 近地面no2估算结果日志，包含ymd日期数组
+surface_no2_util = DataRecordUtil(path_util.under_est(Path('surface_no2_record.json')))
+# 每次运行都会记录的日志
+shared_data_util = DataRecordUtil(Path(SHARED_DIR, 'data_record.json'))

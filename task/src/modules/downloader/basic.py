@@ -9,15 +9,17 @@ from src.config import SecretConfig
 
 
 def init_ee_credentials():
-    if SecretConfig.gee_credentials is None:
-        raise RuntimeError(
-            f'环境变量缺少GEE_CREDENTIALS，可以在GEE初次浏览器认证之后的{get_credentials_path()}中获取'
-        )
-    # 写入
-    path = Path(get_credentials_path())
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, 'w') as f:
-        f.write(SecretConfig.gee_credentials)
+    if SecretConfig.is_github_actions:
+        if SecretConfig.gee_credentials is None:
+            raise RuntimeError(
+                f'环境变量缺少GEE_CREDENTIALS，可以在GEE初次浏览器认证之后的{get_credentials_path()}中获取'
+            )
+        # 写入
+        path = Path(get_credentials_path())
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, 'w') as f:
+            f.write(SecretConfig.gee_credentials)
+    # 初始化
     ee.Authenticate()
     ee.Initialize(
         project='ee-hfdy09354121794',
@@ -41,14 +43,14 @@ class GEEDownloader:
         )
 
     @final
-    def clip(self, image: ee.image.Image):
+    def clip(self, image: ee.image.Image) -> ee.image.Image:
         """裁剪image
 
         Args:
             image (ee.image.Image): _description_
 
         Returns:
-            _type_: _description_
+            ee.image.Image: _description_
         """
         return image.clip(self.china_rect_region)
 
