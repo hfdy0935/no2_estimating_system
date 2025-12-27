@@ -9,7 +9,7 @@ from src.utils.light import (
     parquet_util,
     path_util,
     df_util,
-    surface_no2_util,
+    est_no2_util,
 )
 from src.constant import EST_MODEL_PATH
 
@@ -132,7 +132,7 @@ class Estimator:
         savepath = path_util.get_yymd_path_under_est(['tif'], self.dt, extension='tif')
         df_util.df2tif2save(df=pred, value_column=self.y_column, savepath=savepath)
         self.log(f"估算成功，tif已保存至{path_util.relative2logpath(savepath)}")
-        surface_no2_util.log(msg=self.ymd)
+        est_no2_util.log(msg=self.ymd)
 
 
 def estimate_no2(dt: datetime):

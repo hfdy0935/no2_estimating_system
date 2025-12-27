@@ -1,9 +1,7 @@
 import sys
-from src.modules.downloader.era5 import ERA5Downloader, download_era5
+from src.modules.downloader.era5 import download_era5
 from src.modules.reconstructor.main import reconstruct_no2
 from src.modules.estimator.main import estimate_no2
-from src.modules.downloader.geoscf import GEOSCFDownloader, download_geoscf
-from src.modules.downloader.gems import download_gems
 
 from src.utils.light import time_util, shared_data_util
 
@@ -16,12 +14,8 @@ if __name__ == '__main__':
             dt = time_util.ymd2dt(sys.argv[1])
         except:
             raise ValueError('解析时间出错')
-    with shared_data_util.log_with_time('GEOS-CF'):
-        download_geoscf(dt=dt - GEOSCFDownloader.diff)
-    with shared_data_util.log_with_time('GEMS'):
-        download_gems(dt=dt)
     with shared_data_util.log_with_time('ERA5'):
-        download_era5(dt=dt - ERA5Downloader.diff)
+        dt = download_era5(dt=dt)
     with shared_data_util.log_with_time('Reconstruct'):
         reconstruct_no2(dt=dt)
     with shared_data_util.log_with_time('Estimate'):

@@ -15,4 +15,6 @@ class SecretConfig:
     # github相关
     github_token: str = os.getenv('GITHUB_TOKEN', '')
     issue_number: int = int(os.getenv('ISSUE_NUMBER', -1))
-    repo_full_name: str = os.getenv('REPO_FULL_NAME', '')
+    repo_full_name: str = os.getenv('REPO_FULL_NAME', '')  # username/reponame
+    # 邮箱service code
+    email_service_code: str = os.getenv('EMAIL_SERVICE_CODE', '')

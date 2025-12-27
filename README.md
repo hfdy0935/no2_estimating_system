@@ -36,4 +36,5 @@
 以下均使用github secret（仓库级）
 1. GEMS的`api-key`
 2. GEE的认证文件和
-3. `git push`的token
+3. `git push`的token，名为`GITHUB_TOKEN`，actions流程中会自动生成，不用配置
+4. 邮箱`SMTP`的验证码

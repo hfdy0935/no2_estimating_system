@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from datetime import datetime
 import datetime as dt_pkg
+from functools import lru_cache
 import json
 import logging
 import os
@@ -560,8 +561,7 @@ class DataRecordUtil:
 
     def log(self, msg: str):
         """写入日志"""
-        _data = open(self.path, 'r', encoding='utf-8').read() or '[]'
-        data: list = json.loads(_data)
+        data: list = self.get()
         data.append(msg)
         json.dump(
             data,
@@ -578,8 +578,42 @@ class DataRecordUtil:
         end = time.time()
         self.log(f'[{time_util.dt2ymdhm()}] {msg} {end - start:.2f}s')
 
+    def get(self) -> list:
+        _data = open(self.path, 'r', encoding='utf-8').read() or '[]'
+        return json.loads(_data)
+
+    @property
+    @lru_cache
+    def range(self) -> list[datetime]:
+        """获取开始和结束时间"""
+        ls = self.get()
+        if len(ls) == 0:
+            return []
+        return [time_util.ymd2dt(ls[0]), time_util.ymd2dt(ls[-1])]
+
+    @property
+    @lru_cache
+    def start(self):
+        r = self.range
+        if len(r) == 0:
+            return None
+        return r[0]
+
+    @property
+    @lru_cache
+    def end(self):
+        r = self.range
+        if len(r) == 0:
+            return None
+        return r[-1]
+
+    @property
+    @lru_cache
+    def empty(self):
+        return len(self.get()) == 0
+
 
 # 近地面no2估算结果日志，包含ymd日期数组
-surface_no2_util = DataRecordUtil(path_util.under_est(Path('surface_no2_record.json')))
+est_no2_util = DataRecordUtil(path_util.under_est(Path('surface_no2_record.json')))
 # 每次运行都会记录的日志
 shared_data_util = DataRecordUtil(Path(SHARED_DIR, 'data_record.json'))
