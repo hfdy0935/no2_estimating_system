@@ -16,7 +16,7 @@ from email.mime.text import MIMEText
 import requests
 from src.config import SecretConfig
 from src.utils.light import time_util, est_no2_util, path_util
-from src.constant import SHARED_DIR
+from src.constant import SHARED_DIR, IssueWhiteUsernameList
 
 logger = logging.getLogger()
 # 配置见https://docs.github.com/zh/rest/issues/issues?apiVersion=2022-11-28#get-an-issue
@@ -217,7 +217,7 @@ class IssueTool:
 
     def close(self):
         resp = requests.patch(self.close_url, headers=headers, json={'state': 'closed'})
-        if resp.status_code >= 200 or resp.status_code < 300:
+        if resp.status_code == 200:
             log('关闭成功')
         else:
             log('关闭失败')
@@ -250,6 +250,11 @@ class IssueHandler:
 
     def run(self):
         issue_info = self.issue_tool.fetch_issue_info()
+        # 判断是否在白名单中
+        if issue_info.username not in IssueWhiteUsernameList:
+            log(f'非白名单用户，已忽略')
+            self.issue_tool.reply('你不是白名单用户，暂无权限，请联系作者')
+            return
         if issue_info.status == 'ignore':
             log(f'title非{self.target_issue_title}，已忽略')
             return

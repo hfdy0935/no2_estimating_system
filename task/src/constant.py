@@ -37,3 +37,7 @@ EST_MODEL_PATH: Final[Path] = Path(SHARED_DIR, 'estimate', 'model', 'model.cbm')
 
 # 空间分辨率
 RESOLUTION: Final[float] = 0.05
+
+
+# issue自动回复白名单
+IssueWhiteUsernameList = ['hfdy0935']
