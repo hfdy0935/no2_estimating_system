@@ -5,7 +5,7 @@ on:
 
 permissions:
   issues: write # 可以回复issue
-  contents: read
+  contents: read # 可以读取仓库
 
 jobs:
   handle_issue:

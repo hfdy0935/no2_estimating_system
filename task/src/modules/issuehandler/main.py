@@ -102,6 +102,7 @@ class Emailtool:
         """
         zip_buffer = BytesIO()
         zf = zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED)
+        breakpoint()
         for dt in param.get_tru_send_dates():
             path = path_util.get_yymd_path_under_est(['tif'], dt, extension='tif')
             if not path.exists():
@@ -138,7 +139,7 @@ class Emailtool:
         if not est_no2_util.empty:
             zip_buffer = self._prepare_data(content_info)
             part = MIMEBase("application", "zip")
-            part.set_payload(zip_buffer.read())
+            part.set_payload(zip_buffer.getvalue())
             encoders.encode_base64(part)
             part.add_header("Content-Disposition", "attachment; filename=data.zip")
             msg.attach(part)
