@@ -297,7 +297,6 @@ class DataFrameUtil:
             savepath (Path): _description_
         """
         data_array = self.df2grid(df=df, value_column=value_column, fill_value=np.nan)
-        breakpoint()
         # ------------------- 2. 定义TIFF元数据 -------------------
         height, width = data_array.shape
         crs = rasterio.crs.CRS.from_epsg(4326)  # type: ignore

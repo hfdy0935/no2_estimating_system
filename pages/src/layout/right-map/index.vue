@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { Scene, RasterLayer } from '@antv/l7';
+import { Scene, RasterLayer, PolygonLayer } from '@antv/l7';
 import { useMapStore } from '@/stores/map';
 import { Map as L7Map } from '@antv/l7-maps';
 import { raw_base_url } from '@/utils';
@@ -26,7 +26,6 @@ const handleTif = async () => {
     if (!scene.value) return
     const path = selectedMenuOption.value?.key
     if (!path) return
-    console.log('加载tif');
 
     const response = await fetch(`${raw_base_url}/${path}`);
     const arrayBuffer = await response.arrayBuffer();
@@ -35,17 +34,16 @@ const handleTif = async () => {
     const width = image.getWidth();
     const height = image.getHeight();
     const tiffData = (await image.readRasters())
+    // data
     const layer = new RasterLayer({
         autoFit: true,
     });
-    console.log(height, width, tiffData);
-
     layer.source(tiffData[0], {
         parser: {
             type: 'raster',
             width: width,
             height: height,
-            extent: [72, -1, 137, 53.55],
+            extent: [72, -1, 137, 55],
         },
     }).style({
         opacity: 1,
