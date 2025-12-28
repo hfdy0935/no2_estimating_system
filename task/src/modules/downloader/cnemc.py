@@ -82,7 +82,6 @@ class CNEMCDownloader:
         Args:
             dt (datetime): 北京时间.
         """
-        ymdh = time_util.dt2ymdh(dt)
         # 1. 开始下载
         resp = self.session.post(
             url=self.base_url,
