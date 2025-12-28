@@ -9,15 +9,16 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { Scene, RasterLayer, PolygonLayer } from '@antv/l7';
+import { Scene, RasterLayer } from '@antv/l7';
 import { useMapStore } from '@/stores/map';
 import { Map as L7Map } from '@antv/l7-maps';
 import { raw_base_url } from '@/utils';
 import * as GeoTIFF from 'geotiff'
 import { useMenuStore } from '@/stores/menu';
+import { ChinaRect } from '@/constants';
 
 const mapEL = useTemplateRef('mapEl')
-const { scene, loading, curDataLayer, columns } = storeToRefs(useMapStore())
+const { scene, loading, curDataLayer } = storeToRefs(useMapStore())
 const { removeCurDataLayer } = useMapStore()
 const { selectedMenuOption } = storeToRefs(useMenuStore())
 
@@ -43,7 +44,7 @@ const handleTif = async () => {
             type: 'raster',
             width: width,
             height: height,
-            extent: [73.625, 2.475, 136.675, 53.525],
+            extent: [ChinaRect.minlon, ChinaRect.minlat, ChinaRect.maxlon, ChinaRect.maxlat],
         },
     }).style({
         opacity: 1,
