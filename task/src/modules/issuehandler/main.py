@@ -33,7 +33,9 @@ available_end = (
 
 
 def log(msg: str):
-    logger.info(f'{time_util.dt2ymdhm()} issue#{SecretConfig.issue_number} {msg}')
+    logger.info(
+        f'{time_util.dt2ymdhm(time_util.beijing_now())} issue#{SecretConfig.issue_number} {msg}'
+    )
 
 
 @dataclass
