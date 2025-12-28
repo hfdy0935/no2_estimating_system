@@ -51,7 +51,7 @@ class Estimator:
         logger.info(f'{dt_str or self.ymd} Estimate {msg}')
 
     def _load_x_data(self):
-        rec = pd.read_parquet(path_util.get_yymd_path_under_rec(['rec'], self.dt))
+        rec = pd.read_parquet(path_util.get_yymd_path_under_rec(['pq'], self.dt))
         era5 = df_util.read_era5(dt=self.dt)
         ndvi = pd.read_parquet(
             path_util.under_ds(
@@ -128,7 +128,7 @@ class Estimator:
         savepath = path_util.get_yymd_path_under_est(['pq'], self.dt)
         parquet_util.save(df=pred, path=savepath)
         self.log(f"估算成功，parquet已保存至{path_util.relative2logpath(savepath)}")
-        # 4. 保存tiff
+        # 4. 保存tif
         savepath = path_util.get_yymd_path_under_est(['tif'], self.dt, extension='tif')
         df_util.df2tif2save(df=pred, value_column=self.y_column, savepath=savepath)
         self.log(f"估算成功，tif已保存至{path_util.relative2logpath(savepath)}")
@@ -140,7 +140,7 @@ def estimate_no2(dt: datetime):
     logger.info('=' * 120)
     logger.info(f'{ymd} Estimate 准备估算')
     # 确保该天的数据都存在
-    if not path_util.get_yymd_path_under_rec(['rec'], dt).exists():
+    if not path_util.get_yymd_path_under_rec(['pq'], dt).exists():
         logger.info(f"{ymd} Estimate NO2柱浓度未准备好，跳过")
         return
     if not path_util.get_yymd_path_under_ds(['era5'], dt, midpath='part1').exists():

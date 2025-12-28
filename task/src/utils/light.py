@@ -297,14 +297,14 @@ class DataFrameUtil:
             savepath (Path): _description_
         """
         data_array = self.df2grid(df=df, value_column=value_column, fill_value=np.nan)
+        breakpoint()
         # ------------------- 2. 定义TIFF元数据 -------------------
-        width = data_array.shape[1]
-        height = data_array.shape[0]
+        height, width = data_array.shape
         crs = rasterio.crs.CRS.from_epsg(4326)  # type: ignore
         # 地理变换
         transform = from_origin(
-            west=ChinaRect.minlon,
-            north=ChinaRect.maxlat,
+            west=df.lon.min(),
+            north=df.lat.max(),
             xsize=RESOLUTION,
             ysize=RESOLUTION,
         )

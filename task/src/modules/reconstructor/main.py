@@ -87,10 +87,7 @@ class Reconstructor:
         df = df[self.y_columns]
         df["time"] = raw_time
         df_util.format_columns(df=df, columns=[self.y_column])
-        # 4. 保存
-        savepath = path_util.get_yymd_path_under_rec(['pred'], self.dt)
-        parquet_util.save(df=df, path=savepath)
-        self.log(f"预测成功，已保存至{path_util.relative2logpath(savepath)}")
+        self.log("预测成功")
         return df
 
     def _n2np(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -176,10 +173,14 @@ class Reconstructor:
             )
             record.append(self.ymd)
             json.dump(record, open(path_util.under_rec(Path('lack_gems.json'))))
-        # 6. 保存
-        savepath = path_util.get_yymd_path_under_rec(['rec'], self.dt)
+        # 6. 保存parquet
+        savepath = path_util.get_yymd_path_under_rec(['pq'], self.dt)
         parquet_util.save(df=pred, path=savepath)
         self.log(f"重建成功，已保存至{path_util.relative2logpath(savepath)}")
+        # 7. 保存tif
+        savepath = path_util.get_yymd_path_under_rec(['tif'], self.dt, extension='tif')
+        df_util.df2tif2save(df=pred, value_column=self.y_column, savepath=savepath)
+        self.log(f"估算成功，tif已保存至{path_util.relative2logpath(savepath)}")
 
 
 def reconstruct_no2(dt: datetime):

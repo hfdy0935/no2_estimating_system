@@ -1,4 +1,76 @@
-import type { GitHubFolderItem } from "@/types";
+import { REPO_FULL_NAME } from "@/constants";
+import type { GitHubTreeResp } from "@/types";
+import {
+    FolderOutline, ImageOutline
+} from '@vicons/ionicons5'
+import { NEllipsis, NIcon, type MenuOption } from 'naive-ui'
 
-export const isMenuItemFolder = (item: GitHubFolderItem) => item.type == 'dir'
-export const isMenuItemDisable = (item: GitHubFolderItem) => !isMenuItemFolder(item) && !item.name.endsWith('.parquet') && !item.name.endsWith('.tif')
+export const isTopLevel = (path: string) => !path.includes('/')
+function renderIcon(icon: Component) {
+    return () => h(NIcon, null, { default: () => h(icon) })
+}
+
+
+export const isFolder = (item: GitHubTreeResp['tree'][number]) => item.type === 'tree'
+
+/** B => MB */
+const formatSize = (size: number) => (size / 1024 / 1024).toFixed(2)
+
+/**
+ * GitHub扁平目录树转为层级，返回shared目录下的数据
+ * @param tree 
+ * @returns 
+ */
+export const flatTree2MenuOption = (tree: GitHubTreeResp['tree']): MenuOption[] => {
+    const map = new Map<string, MenuOption>()
+    // 文件夹
+    const genNode = (path: string, children: MenuOption[] = []) => {
+        return {
+            key: path,
+            label: () => h(NEllipsis, null, { default: () => path.includes('/') ? path.split('/').slice(-1)[0] : path }),
+            icon: renderIcon(FolderOutline),
+            children
+        }
+    }
+    const estimateTifNode = genNode('shared/estimate/tif')
+    const reconstructTifNode = genNode('shared/reconstruct/tif')
+    map.set('shared/estimate/tif', estimateTifNode)
+    map.set('shared/reconstruct/tif', reconstructTifNode)
+    const estimateNode = genNode('shared/estimate', [estimateTifNode])
+    const reconstructNode = genNode('shared/reconstruct', [reconstructTifNode])
+    map.set('shared/estimate', estimateNode)
+    map.set('shared/reconstruct', reconstructNode)
+    map.set('shared', genNode('shared', [estimateNode, reconstructNode]))
+    // 
+    const estimateItems = tree.filter(el => el.path.startsWith('shared/estimate/tif/'))
+    const reconstructItems = tree.filter(el => el.path.startsWith('shared/reconstruct/tif/'))
+    for (const item of [...estimateItems, ...reconstructItems]) {
+        const node = {
+            key: item.path,
+            label: () => h(NEllipsis, null, { default: () => isTopLevel('/') ? item.path : item.path.split('/').slice(-1)[0] }),
+            icon: isFolder(item) ? renderIcon(FolderOutline) : renderIcon(ImageOutline),
+            children: isFolder(item) ? [] : undefined,
+            extra: isFolder(item) ? undefined : `${((item.size ?? 0) / 1024 / 1024).toFixed(2)}MB`
+        }
+        map.set(item.path, node)
+        const parent = map.get(item.path.split('/').slice(0, -1).join('/'))
+        if (parent) {
+            parent.children?.push(node)
+        }
+    }
+    return map.get('shared')?.children!
+}
+
+
+/**
+ * 从路径提取文件名
+ * @param path 
+ * @returns 
+ */
+export const extractFilename = (path: string): string => {
+    return isTopLevel(path) ? path : path.split('/').slice(-1)[0]!
+}
+
+
+export const raw_base_url = `https://raw.githubusercontent.com/${REPO_FULL_NAME}/main/`
+

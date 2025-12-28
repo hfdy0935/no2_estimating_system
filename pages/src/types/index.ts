@@ -1,16 +1,13 @@
-
-export interface GitHubFolderItem {
-    download_url: string | null
-    git_url: string
-    html_url: string
-    name: string
-    path: string
-    size: number
-    type: 'dir' | 'file'
+export interface GitHubTreeResp {
+    sha: string
     url: string
-    _links: {
-        git: string
-        gtml: string
-        self: string
-    }
+    tree: {
+        path: string
+        mode: string
+        type: 'tree' | 'blob'
+        sha: string
+        size?: number
+        url: string
+    }[]
+    truncated: boolean
 }

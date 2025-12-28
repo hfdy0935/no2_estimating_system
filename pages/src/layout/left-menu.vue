@@ -1,63 +1,45 @@
 <template>
-    <n-space vertical>
-        <n-layout has-sider>
-            <n-layout-sider bordered collapse-mode="width" :collapsed-width="64" :width="240" :collapsed="collapsed"
-                show-trigger @collapse="collapsed = true" @expand="collapsed = false">
-                <n-menu v-model:value="activeKey" :collapsed="collapsed" :collapsed-width="64" :collapsed-icon-size="22"
-                    :options="menuOptions" />
-            </n-layout-sider>
-            <n-layout>
-                <span>内容</span>
-            </n-layout>
-        </n-layout>
-    </n-space>
+    <n-layout-sider bordered collapse-mode="width" :collapsed-width="96" :width="260" :collapsed show-trigger
+        style="max-height:100vh" :native-scrollbar="false" @collapse="collapsed = true" @expand="collapsed = false">
+        <n-menu v-model:value="activeKey" :collapsed :collapsed-width="96" :collapsed-icon-size="22" :indent="14"
+            :options="menuOptions" @update-value="(_, option) => mapStore.selectedMenuOption = option" />
+    </n-layout-sider>
 </template>
 
 <script setup lang="ts">
 import type { MenuOption } from 'naive-ui'
-import type { Component } from 'vue'
-import {
-    FolderOpen, DocumentText
-} from '@vicons/ionicons5'
-import { NIcon } from 'naive-ui'
-import { h, ref } from 'vue'
-import { getFolderInfo } from '@/api/data'
-import type { GitHubFolderItem } from '@/types'
-import { isMenuItemDisable, isMenuItemFolder } from '@/utils'
-
+import { ref } from 'vue'
+import { getRepoTree } from '@/api/data'
+import { flatTree2MenuOption } from '@/utils'
+import { useMenuStore } from '@/stores/menu'
 
 defineOptions({
     name: 'MapLeftMenu'
 })
-function renderIcon(icon: Component) {
-    return () => h(NIcon, null, { default: () => h(icon) })
-}
+
 const message = useMessage()
 
-const folderData = ref<GitHubFolderItem[]>([])
+const activeKey = ref<string | null>(null)
+const collapsed = ref(false)
 const menuOptions = ref<MenuOption[]>([])
+const mapStore = useMenuStore()
 watchEffect(async () => {
-    const resp = await getFolderInfo()
+    const resp = await getRepoTree()
     if (resp.status !== 200) {
-        message.error('获取GitHub目录失败，请重试或联系作者')
+        message.error('获取GitHub目录失败，请稍后重试或联系作者')
         return
     }
-    folderData.value = resp.data
-    // 如果原来是空的
-    if (menuOptions.value.length === 0) {
-        menuOptions.value = resp.data.map(item => {
-            return {
-                label: item.name,
-                key: item.path,
-                disabled: isMenuItemDisable(item),
-                icon: isMenuItemFolder(item) ? renderIcon(FolderOpen) : renderIcon(DocumentText),
-            }
-        })
-    }
+    menuOptions.value = flatTree2MenuOption(resp.data.tree)
 })
 
 
-
-const activeKey = ref<string | null>(null)
-const collapsed = ref(true)
 </script>
+
+<style scoped>
+.switch {
+    width: 96px;
+    height: 24px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+</style>

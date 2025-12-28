@@ -17,9 +17,12 @@
   },
   "dependencies": {
     "@antv/l7": "^2.23.1",
+    "@antv/l7-leaflet": "^1.0.2",
     "@antv/l7-maps": "^2.23.1",
     "@vicons/ionicons5": "^0.13.0",
     "axios": "^1.13.2",
+    "codemirror": "^6.0.2",
+    "geotiff": "2.1.4-beta.1",
     "naive-ui": "^2.43.2",
     "pinia": "^3.0.4",
     "unplugin-auto-import": "^20.3.0",
