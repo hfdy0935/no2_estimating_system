@@ -14,13 +14,13 @@
         <li>时间：{{ issue_time }}</li>
         <li>用户：{{ issue_username }}</li>
         <li>内容：{{ issue_content }}</li>
-        <li>链接：<a href="{{ issue_link }}">{{ issue_link }}</a></li>
+        <li>链接：<a href="{{ issue_link }}" target="_blank">{{ issue_link }}</a></li>
     </ul>
     {% if not cover %}
-    <p>可获得数据的时间范围为{{available_start}}-{{available_end}}</p>
+    <p>可获得数据的时间范围为<b>{{available_start}}-{{available_end}}</b></p>
     {% endif %}
     <p>现为你准备了{{ start }}-{{ end }}的近地面NO<sub>2</sub>数据，请在<b style="color:red">附件中</b>查收~</p>
-    <p>项目还在不断完善中，欢迎Star，欢迎加入共建：<a href="{{ repo_link }}">{{ repo_link }}</a></p>
+    <p><a href="{{ repo_link }}" target="_blank">项目</a>还在不断完善中，欢迎Star，欢迎加入共建</p>
 </body>
 
 </html>
