@@ -43,7 +43,7 @@ const handleTif = async () => {
             type: 'raster',
             width: width,
             height: height,
-            extent: [72, -1, 137, 55],
+            extent: [73.625, 2.475, 136.675, 53.525],
         },
     }).style({
         opacity: 1,

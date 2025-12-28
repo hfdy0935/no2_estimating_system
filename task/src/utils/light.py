@@ -16,6 +16,9 @@ import numpy as np
 import rasterio
 from rasterio.transform import from_origin
 from src.types import Maybe, Number
+from rasterio.io import MemoryFile
+from rasterio.warp import calculate_default_transform, reproject, Resampling
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -297,7 +300,6 @@ class DataFrameUtil:
             savepath (Path): _description_
         """
         data_array = self.df2grid(df=df, value_column=value_column, fill_value=np.nan)
-        # ------------------- 2. 定义TIFF元数据 -------------------
         height, width = data_array.shape
         crs = rasterio.crs.CRS.from_epsg(4326)  # type: ignore
         # 地理变换
@@ -308,19 +310,69 @@ class DataFrameUtil:
             ysize=RESOLUTION,
         )
         path_util.ensure_path_exist(savepath)
-        with rasterio.open(
-            savepath,
-            'w',
-            driver='GTiff',
-            height=height,
-            width=width,
-            count=1,  # 波段数（单波段）
-            dtype=data_array.dtype,  # 数据类型（与数组一致）
-            crs=crs,
-            transform=transform,
-            nodata=np.nan,  # 标记缺失值
-        ) as dst:
-            dst.write(data_array, 1)  # 将数组写入第1波段
+        # 投影转换
+        with MemoryFile() as memfile:
+            with memfile.open(
+                driver='GTiff',
+                height=height,
+                width=width,
+                count=1,
+                dtype=data_array.dtype,
+                crs=crs,
+                transform=transform,
+                nodata=np.nan,
+            ) as dst_mem:
+                dst_mem.write(data_array, 1)  # 写入内存
+
+                # ------------------- 新增：内存中重投影为3857（无中间文件） -------------------
+                # 计算3857投影参数
+                dst_crs = rasterio.crs.CRS.from_epsg(3857)  # type: ignore
+                transform_3857, width_3857, height_3857 = calculate_default_transform(
+                    dst_mem.crs, dst_crs, dst_mem.width, dst_mem.height, *dst_mem.bounds
+                )
+                # 创建3857投影的数据数组
+                data_3857 = np.empty((height_3857, width_3857), dtype=data_array.dtype)  # type: ignore
+                data_3857.fill(np.nan)  # 初始化缺失值
+
+                # 内存中执行重投影（无文件IO）
+                reproject(
+                    source=rasterio.band(dst_mem, 1),
+                    destination=data_3857,
+                    src_transform=dst_mem.transform,
+                    src_crs=dst_mem.crs,
+                    dst_transform=transform_3857,
+                    dst_crs=dst_crs,
+                    resampling=Resampling.bilinear,
+                    src_nodata=np.nan,
+                    dst_nodata=np.nan,
+                )
+            with rasterio.open(
+                savepath,
+                'w',
+                driver='GTiff',
+                height=height_3857,
+                width=width_3857,
+                count=1,
+                dtype=data_3857.dtype,
+                crs=dst_crs,
+                transform=transform_3857,
+                nodata=np.nan,
+            ) as dst_3857:
+                dst_3857.write(data_3857, 1)
+
+        # with rasterio.open(
+        #     savepath,
+        #     'w',
+        #     driver='GTiff',
+        #     height=height,
+        #     width=width,
+        #     count=1,  # 波段数（单波段）
+        #     dtype=data_array.dtype,  # 数据类型（与数组一致）
+        #     crs=crs,
+        #     transform=transform,
+        #     nodata=np.nan,  # 标记缺失值
+        # ) as dst:
+        #     dst.write(data_array, 1)  # 将数组写入第1波段
 
     def read_era5(self, dt: datetime) -> pd.DataFrame:
         """读取era5的所有部分"""
