@@ -1,4 +1,4 @@
-name: issue_data_getter
+name: handle_issue
 on:
   issues:
     types: [opened, edited] # 触发时机：Issue被创建/编辑时
@@ -14,13 +14,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install uv
         uses: astral-sh/setup-uv@v5
-        with:
-          working-directory: ./task
       - name: Install python
         uses: actions/setup-python@v5
         with:
           python-version-file: "./task/.python-version"
-      - name: Run script
+      - name: Handle issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }} # 当前触发的Issue编号
@@ -28,4 +26,5 @@ jobs:
           EMAIL_SERVICE_CODE: ${{ secrets.EMAIL_SERVICE_CODE }} # 邮箱验证码
         run: |
           cd ./task
+          uv sync
           uv run handle_issue.py

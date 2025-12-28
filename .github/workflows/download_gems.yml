@@ -20,8 +20,6 @@ jobs:
           fetch-depth: 0
       - name: Install uv
         uses: astral-sh/setup-uv@v5
-        with:
-          working-directory: ./task
       - name: Install python
         uses: actions/setup-python@v5
         with:
@@ -31,6 +29,7 @@ jobs:
           GEMS_API_KEY: ${{ secrets.GEMS_API_KEY }}
         run: |
           cd ./task
+          uv sync
           uv run download_gems.py
       - name: Commit changes
         run: |
