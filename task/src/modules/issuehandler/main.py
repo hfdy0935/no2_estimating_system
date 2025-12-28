@@ -4,7 +4,6 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from io import BytesIO
-import json
 import logging
 from pathlib import Path
 import smtplib
