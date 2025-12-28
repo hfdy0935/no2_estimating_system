@@ -12,6 +12,7 @@ import { ref } from 'vue'
 import { getRepoTree } from '@/api/data'
 import { flatTree2MenuOption } from '@/utils'
 import { useMenuStore } from '@/stores/menu'
+import { storeToRefs } from 'pinia'
 
 defineOptions({
     name: 'MapLeftMenu'
@@ -20,8 +21,8 @@ defineOptions({
 const message = useMessage()
 
 const activeKey = ref<string | null>(null)
-const collapsed = ref(false)
 const menuOptions = ref<MenuOption[]>([])
+const { collapsed } = storeToRefs(useMenuStore())
 const mapStore = useMenuStore()
 watchEffect(async () => {
     const resp = await getRepoTree()

@@ -2,6 +2,7 @@
     <n-spin :show="loading">
         <div class="container">
             <!-- <data-extract-board></data-extract-board> -->
+
             <div id="map" ref="mapEl"></div>
         </div>
     </n-spin>
@@ -20,7 +21,7 @@ import { ChinaRect } from '@/constants';
 const mapEL = useTemplateRef('mapEl')
 const { scene, loading, curDataLayer } = storeToRefs(useMapStore())
 const { removeCurDataLayer } = useMapStore()
-const { selectedMenuOption } = storeToRefs(useMenuStore())
+const { selectedMenuOption, collapsed } = storeToRefs(useMenuStore())
 
 /** 请求tif，解析，添加到scene */
 const handleTif = async () => {
@@ -94,9 +95,11 @@ watchEffect(() => {
         );
         scene.value?.addLayer(layer);
         handleTif()
-    });
-
+    })
 })
+
+/** 地图区域宽度 */
+const mapWidth = computed(() => collapsed.value ? '94vw' : '85vw')
 </script>
 
 <style scoped>
@@ -106,7 +109,7 @@ watchEffect(() => {
 }
 
 #map {
-    width: 100vw;
+    width: v-bind(mapWidth);
     height: 100vh;
 }
 </style>

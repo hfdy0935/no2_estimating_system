@@ -11,8 +11,9 @@ export const useMenuStore = defineStore('menu', () => {
     if (!path) return ''
     return extractFilename(path as string)
   })
+  const collapsed = ref(false)
 
   return {
-    selectedMenuOption, selectedFilename
+    selectedMenuOption, selectedFilename, collapsed
   }
 })
