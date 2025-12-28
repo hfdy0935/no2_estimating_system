@@ -111,6 +111,12 @@ class Emailtool:
         return zip_buffer
 
     def send(self, issue_info: FetchIssueResult, content_info: IssueContentResult):
+        """发送携带数据的邮件
+
+        Args:
+            issue_info (FetchIssueResult): _description_
+            content_info (IssueContentResult): _description_
+        """
         # 1. 构建邮件
         msg = MIMEMultipart()
         msg['From'] = self.email
@@ -134,14 +140,14 @@ class Emailtool:
                 'utf-8',
             )
         )
-        # 如果有数据
-        if not est_no2_util.empty:
-            zip_buffer = self._prepare_data(content_info)
-            part = MIMEBase("application", "zip")
-            part.set_payload(zip_buffer.getvalue())
-            encoders.encode_base64(part)
-            part.add_header("Content-Disposition", "attachment; filename=data.zip")
-            msg.attach(part)
+        # 2. 添加数据为附件
+        zip_buffer = self._prepare_data(content_info)
+        part = MIMEBase("application", "zip")
+        part.set_payload(zip_buffer.getvalue())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', 'attachment; filename=data.zip')
+        msg.attach(part)
+        # 3. 发送
         # https://wx.mail.qq.com/list/readtemplate?name=app_intro.html#/agreement/authorizationCode
         server = smtplib.SMTP_SSL('smtp.qq.com', smtplib.SMTP_SSL_PORT)
         server.login(self.email, self.service_code)
@@ -154,7 +160,7 @@ class Emailtool:
 
 class IssueTool:
     def __init__(self, target_issue_title: str):
-        self.fetch_issue_url = f"https://api.github.com/repos/{SecretConfig.repo_full_name}/issues/{SecretConfig.issue_number}"
+        self.fetch_issue_url = f'https://api.github.com/repos/{SecretConfig.repo_full_name}/issues/{SecretConfig.issue_number}'
         self.reply_url = f'https://api.github.com/repos/{SecretConfig.repo_full_name}/issues/{SecretConfig.issue_number}/comments'
         self.close_url = f'https://api.github.com/repos/{SecretConfig.repo_full_name}/issues/{SecretConfig.issue_number}'
         self.target_issue_title = target_issue_title
@@ -202,7 +208,7 @@ class IssueTool:
         log(
             f'处理失败，{e.args}',
         )
-        self.reply(f'获取数据失败，请确保issue格式符合要求，或稍后重试，或联系作者')
+        self.reply(f'流程执行失败，请确保issue格式符合要求，或稍后重试，或联系作者')
 
     def reply_fetch_fail(self):
         log(f'请求失败')
@@ -264,9 +270,10 @@ class IssueHandler:
                 self.issue_tool.reply_no_data()
                 return
             self.email_tool.send(issue_info, content_info)
-            data_cnt_msg = f'目前数据可获得的时间范围为：{available_start}-{available_end}，已将{content_info.tru_send_dates_bound_str[0]}-{content_info.tru_send_dates_bound_str[1]}的'
+            cover_msg = f'{issue_info.username}你好，已将数据发送至指定邮箱~'
+            not_cover_msg = f'{issue_info.username}你好，目前可获取数据的时间范围为：{available_start}-{available_end}，已将{content_info.tru_send_dates_bound_str[0]}-{content_info.tru_send_dates_bound_str[1]}的数据发送至指定邮箱~'
             self.issue_tool.reply_success(
-                f'{issue_info.username}你好，{"" if content_info.cover else data_cnt_msg}数据已发送至指定邮箱~'
+                cover_msg if content_info.cover else not_cover_msg
             )
             self.issue_tool.close()
         except Exception as e:
