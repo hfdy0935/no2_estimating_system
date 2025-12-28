@@ -559,7 +559,9 @@ class DataRecordUtil:
         start = time.time()
         yield
         end = time.time()
-        self.log(f'[{time_util.dt2ymdhm()}] {msg} {end - start:.2f}s')
+        self.log(
+            f'[{time_util.dt2ymdhm(time_util.beijing_now())}] {msg} {end - start:.2f}s'
+        )
 
     def get(self) -> list:
         _data = open(self.path, 'r', encoding='utf-8').read() or '[]'
