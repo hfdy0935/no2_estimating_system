@@ -1,4 +1,4 @@
-import { raw_base_url, REPO_FULL_NAME } from "@/constants";
+import { raw_base_url } from "@/constants";
 import type { GitHubTreeResp } from "@/types";
 import {
     FolderOutline, ImageOutline
@@ -6,7 +6,7 @@ import {
 import { asyncBufferFromUrl, parquetReadObjects, type AsyncBuffer } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 import { NEllipsis, NIcon, type MenuOption } from 'naive-ui'
-import _ from 'lodash-es'
+import * as _ from 'lodash-es'
 
 export const isTopLevel = (path: string) => !path.includes('/')
 export const isParquet = (path: string) => path.endsWith('.parquet')
