@@ -90,8 +90,9 @@ class Emailtool:
                 path_util.under_est(Path('tif')),
                 time_str[:4],
                 time_str[:8],
-                f'{time_str}.parquet',
+                f'{time_str}.tif',
             )
+            breakpoint()
             if not path.exists():
                 continue
             zf.write(
@@ -99,7 +100,7 @@ class Emailtool:
                 arcname=Path(
                     time_str[:4],
                     time_str[:8],
-                    f'{time_str}.parquet',
+                    f'{time_str}.tif',
                 ),
             )
         zip_buffer.seek(0)
