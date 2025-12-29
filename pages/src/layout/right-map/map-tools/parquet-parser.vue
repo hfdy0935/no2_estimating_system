@@ -97,7 +97,7 @@ const handleParquet = async (path: string) => {
 const fetchCNEMC = async () => {
     const path = selectedMenuOption.value?.key
     const year = selectedFilename.value.split('.')[0]?.slice(0, 4)
-    const cnemcPath = `shared/data_source/cnemc/utc/${year}/${selectedFilename.value}`
+    const cnemcPath = `shared/data_source/cnemc/${year}/${selectedFilename.value}`
     if (!path) return
     try {
         loading.value = true
