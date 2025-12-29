@@ -186,10 +186,10 @@ class Reconstructor:
                 path_util.under_rec(Path('tif')),
                 time_str[:4],
                 time_str[:8],
-                f'{time_str}.parquet',
+                f'{time_str}.tif',
             )
             df_util.df2tif2save(df=group, value_column=self.y_column, savepath=savepath)
-        self.log(f"重建成功，tif已保存至{savepath.parent}")
+        self.log(f"重建成功，tif已保存至{savepath.parent}/")
 
 
 def reconstruct_no2(dt: datetime):

@@ -136,10 +136,12 @@ class Estimator:
                 path_util.under_est(Path('tif')),
                 time_str[:4],
                 time_str[:8],
-                f'{time_str}.parquet',
+                f'{time_str}.tif',
             )
             df_util.df2tif2save(df=group, value_column=self.y_column, savepath=savepath)
-        self.log(f"估算成功，tif已保存至{savepath.parent}")
+        self.log(f"估算成功，tif已保存至{savepath.parent}/")
+        # 5. 数据记录
+        est_no2_util.log(self.ymd)
 
 
 def estimate_no2(dt: datetime):
