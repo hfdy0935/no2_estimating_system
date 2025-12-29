@@ -13,17 +13,12 @@
             </n-alert>
             <template v-else>
                 <n-form label-placement="left">
-                    <n-form-item label="筛选时间">
-                        <n-select v-model:value="selectedBandIdx" :options style="width: 80px;" />&emsp;h
-                    </n-form-item>
-                </n-form>
-                <n-form label-placement="left">
-                    <n-form-item label="显示CNEMC">
+                    <n-form-item label="显示CNEMC&nbsp;&nbsp;">
                         <n-switch v-model:value="showCnemc"></n-switch>
                     </n-form-item>
                 </n-form>
                 <n-form label-placement="left">
-                    <n-form-item label="显示省边界">
+                    <n-form-item label="显示省边界  &emsp;">
                         <n-switch v-model:value="showProvinceEdge"></n-switch>
                     </n-form-item>
                 </n-form>
@@ -43,27 +38,15 @@ const message = useMessage()
 
 
 const { selectedMenuOption, selectedFilename } = storeToRefs(useMenuStore())
-const { scene, loading, selectedBandIdx, curData } = storeToRefs(useMapStore())
-
-
-// region波段选项
-
-/** 波段选项 */
-const options = computed(() => {
-    if (!curData.value) return []
-    return Array.from({ length: curData.value.length }, (_, i) => ({ label: `${i}`, value: i }))
-})
-// endregion
+const { scene, loading } = storeToRefs(useMapStore())
 
 // region显示cnemc
 const showCnemc = ref(false)
 const cnemcData = ref<object[]>([])
-const selectedCNEMCData = ref<object>([])
 const cnemcLayer = ref<ILayer>()
 /** 更新cnemc图层数据为最新选中时间 */
 const updateLayerData = (layer?: ILayer) => {
-    selectedCNEMCData.value = cnemcData.value[selectedBandIdx.value]!
-    layer?.setSource(new Source(selectedCNEMCData.value, {
+    layer?.setSource(new Source(cnemcData.value, {
         parser: {
             type: 'json',
             x: 'lon',
@@ -85,8 +68,6 @@ const removeCnemcLayer = () => {
         scene.value?.removeLayer(cnemcLayer.value)
     }
 }
-/** 选中波段改变时修改图层数据 */
-watch(selectedBandIdx, () => updateLayerData(cnemcLayer.value))
 /** 切换数据时且展示cnemc时，请求parquet，创建新图层，添加数据，移除原图层，添加到scene */
 const handleParquet = async (path: string) => {
     cnemcData.value = await fetchAndParseParquet(path as string)
@@ -161,7 +142,7 @@ watch(showCnemc, val => {
 // endregion
 
 // region 省边界
-const showProvinceEdge = ref(false)
+const showProvinceEdge = ref(true)
 const provinceLayer = ref<ILayer>()
 watch(showProvinceEdge, async val => {
     if (!val) {
@@ -174,7 +155,7 @@ watch(showProvinceEdge, async val => {
             'https://mdn.alipayobjects.com/antforest/afts/file/A*vaL-R4SU18IAAAAAgCAAAAgAerd2AQ/original_2025-11-14.json';
         const result = await fetch(url1);
         const data = await result.json();
-        const boundaryLayer = new PolygonLayer({
+        provinceLayer.value = new PolygonLayer({
             autoFit: true,
         })
             .source({
@@ -187,8 +168,7 @@ watch(showProvinceEdge, async val => {
             .style({
                 opacity: 1,
             });
-        provinceLayer.value = boundaryLayer
-        scene.value?.addLayer(boundaryLayer);
+        scene.value?.addLayer(provinceLayer.value);
     } catch {
         message.error('获取省边界失败')
     } finally {

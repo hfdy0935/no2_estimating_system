@@ -203,5 +203,8 @@ def reconstruct_no2(dt: datetime):
     if not path_util.get_yymd_path_under_ds(['era5'], dt, midpath='part1').exists():
         logger.info(f"{ymd} Reconstruct ERA5未准备好，跳过")
         return
+    if not path_util.get_yymd_path_under_ds(['gems'], dt).exists():
+        logger.info(f"{ymd} Reconstruct GEMS未准备好，跳过")
+        return
     reconstroctor = Reconstructor(REC_MODEL_PATH, dt)
     reconstroctor.run()

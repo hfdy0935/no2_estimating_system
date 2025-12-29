@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { Scene, RasterLayer, Source } from '@antv/l7';
+import { Scene, RasterLayer, Source, type ILayer } from '@antv/l7';
 import { useMapStore } from '@/stores/map';
 import { Map as L7Map } from '@antv/l7-maps';
 import * as GeoTIFF from 'geotiff'
@@ -21,25 +21,12 @@ defineOptions({
     name: 'MapRender'
 })
 const mapEL = useTemplateRef('mapEl')
-const { scene, loading, curDataLayer, curData, selectedBandIdx, curDataInfo } = storeToRefs(useMapStore())
-const { removeCurDataLayer } = useMapStore()
+const { scene, loading } = storeToRefs(useMapStore())
 const { selectedMenuOption } = storeToRefs(useMenuStore())
 const message = useMessage()
+/** 当前显示的数据图层，来自tif */
+const curDataLayer = ref<ILayer>()
 
-/** 根据选中的波段更新图层 */
-const updateSelectBand = () => {
-    curDataLayer.value?.setSource(new Source(curData.value[selectedBandIdx.value], {
-        parser: {
-            type: 'raster',
-            width: curDataInfo.value.width,
-            height: curDataInfo.value.height,
-            extent: [ChinaRect.minlon, ChinaRect.minlat, ChinaRect.maxlon, ChinaRect.maxlat],
-        }
-    }))
-}
-watch(selectedBandIdx, () => {
-    updateSelectBand()
-})
 
 /** 请求tif，解析，添加到scene */
 const handleTif = async () => {
@@ -54,17 +41,21 @@ const handleTif = async () => {
         const image = await tiff.getImage();
         const width = image.getWidth();
         const height = image.getHeight();
-        curDataInfo.value = {
-            width, height
-        }
         const tiffData = (await image.readRasters())
-        curData.value = tiffData as Float64Array[]
         // 移除旧的
-        removeCurDataLayer()
+        if (curDataLayer.value)
+            scene.value?.removeLayer(curDataLayer.value)
         // 添加新的
         curDataLayer.value = new RasterLayer({ autoFit: true })
         // 更新图层数据
-        updateSelectBand()
+        curDataLayer.value?.setSource(new Source(tiffData[0], {
+            parser: {
+                type: 'raster',
+                width,
+                height,
+                extent: [ChinaRect.minlon, ChinaRect.minlat, ChinaRect.maxlon, ChinaRect.maxlat],
+            }
+        }))
         // 更新图层样式
         curDataLayer.value.style({
             opacity: 1,

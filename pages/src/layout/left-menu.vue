@@ -1,5 +1,5 @@
 <template>
-    <n-layout-sider bordered collapse-mode="width" :collapsed-width="96" :width="260" :collapsed show-trigger
+    <n-layout-sider bordered collapse-mode="width" :collapsed-width="96" :width="300" :collapsed show-trigger
         style="max-height:100vh" :native-scrollbar="false" @collapse="collapsed = true" @expand="collapsed = false">
         <n-menu v-model:value="activeKey" :collapsed :collapsed-width="96" :collapsed-icon-size="22" :indent="14"
             :options="menuOptions" @update-value="(value, option) => mapStore.selectedMenuOption = option" />
