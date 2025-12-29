@@ -142,7 +142,7 @@ watch(showCnemc, val => {
 // endregion
 
 // region 省边界
-const showProvinceEdge = ref(true)
+const showProvinceEdge = ref(false)
 const provinceLayer = ref<ILayer>()
 watch(showProvinceEdge, async val => {
     if (!val) {
