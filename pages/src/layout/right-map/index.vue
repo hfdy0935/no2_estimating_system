@@ -1,8 +1,7 @@
 <template>
-    <n-spin :show="loading">
+    <n-spin :show="loading" description="加载中...">
         <div class="container">
-            <!-- <data-extract-board></data-extract-board> -->
-
+            <map-tools></map-tools>
             <div id="map" ref="mapEl"></div>
         </div>
     </n-spin>
@@ -10,60 +9,80 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { Scene, RasterLayer } from '@antv/l7';
+import { Scene, RasterLayer, Source } from '@antv/l7';
 import { useMapStore } from '@/stores/map';
 import { Map as L7Map } from '@antv/l7-maps';
-import { raw_base_url } from '@/utils';
 import * as GeoTIFF from 'geotiff'
 import { useMenuStore } from '@/stores/menu';
-import { ChinaRect } from '@/constants';
+import { ChinaRect, raw_base_url } from '@/constants';
+import MapTools from './map-tools/index.vue';
 
 defineOptions({
     name: 'MapRender'
 })
 const mapEL = useTemplateRef('mapEl')
-const { scene, loading, curDataLayer } = storeToRefs(useMapStore())
+const { scene, loading, curDataLayer, curData, selectedBandIdx, curDataInfo } = storeToRefs(useMapStore())
 const { removeCurDataLayer } = useMapStore()
 const { selectedMenuOption } = storeToRefs(useMenuStore())
+const message = useMessage()
+
+/** 根据选中的波段更新图层 */
+const updateSelectBand = () => {
+    curDataLayer.value?.setSource(new Source(curData.value[selectedBandIdx.value], {
+        parser: {
+            type: 'raster',
+            width: curDataInfo.value.width,
+            height: curDataInfo.value.height,
+            extent: [ChinaRect.minlon, ChinaRect.minlat, ChinaRect.maxlon, ChinaRect.maxlat],
+        }
+    }))
+}
+watch(selectedBandIdx, () => {
+    updateSelectBand()
+})
 
 /** 请求tif，解析，添加到scene */
 const handleTif = async () => {
     if (!scene.value) return
     const path = selectedMenuOption.value?.key
     if (!path) return
-
-    const response = await fetch(`${raw_base_url}/${path}`);
-    const arrayBuffer = await response.arrayBuffer();
-    const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
-    const image = await tiff.getImage();
-    const width = image.getWidth();
-    const height = image.getHeight();
-    const tiffData = (await image.readRasters())
-    // data
-    const layer = new RasterLayer({
-        autoFit: true,
-    });
-    layer.source(tiffData[0], {
-        parser: {
-            type: 'raster',
-            width: width,
-            height: height,
-            extent: [ChinaRect.minlon, ChinaRect.minlat, ChinaRect.maxlon, ChinaRect.maxlat],
-        },
-    }).style({
-        opacity: 1,
-        clampLow: false,
-        clampHigh: false,
-        domain: [0, 100],
-        rampColors: {
-            type: 'linear',
-            colors: ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a'].reverse(),
-            positions: [0, 25, 50, 75, 100],
-        },
-    })
-    removeCurDataLayer()
-    scene.value?.addLayer(layer)
-    curDataLayer.value = layer
+    try {
+        loading.value = true
+        const response = await fetch(`${raw_base_url}/${path}`);
+        const arrayBuffer = await response.arrayBuffer();
+        const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+        const image = await tiff.getImage();
+        const width = image.getWidth();
+        const height = image.getHeight();
+        curDataInfo.value = {
+            width, height
+        }
+        const tiffData = (await image.readRasters())
+        curData.value = tiffData as Float64Array[]
+        // 移除旧的
+        removeCurDataLayer()
+        // 添加新的
+        curDataLayer.value = new RasterLayer({ autoFit: true })
+        // 更新图层数据
+        updateSelectBand()
+        // 更新图层样式
+        curDataLayer.value.style({
+            opacity: 1,
+            clampLow: false,
+            clampHigh: false,
+            domain: [0, 100],
+            rampColors: {
+                type: 'linear',
+                colors: ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a'].reverse(),
+                positions: [0, 25, 50, 75, 100],
+            },
+        })
+        scene.value?.addLayer(curDataLayer.value)
+    } catch {
+        message.error(`${path}加载失败，数据不存在或出现错误，请验证数据是否存在或重试或联系作者`, { keepAliveOnHover: true })
+    } finally {
+        loading.value = false
+    }
 }
 
 watch(selectedMenuOption, () => {
@@ -105,11 +124,13 @@ watchEffect(() => {
 <style scoped>
 .container {
     margin-left: 12px;
-    overflow: hiden;
+    overflow: hidden;
+
 }
 
 #map {
     width: 100vw;
     height: 100vh;
+    position: relative;
 }
 </style>

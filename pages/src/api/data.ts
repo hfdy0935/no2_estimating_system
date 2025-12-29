@@ -1,5 +1,5 @@
 import type { GitHubTreeResp } from "@/types"
-import { REPO_FULL_NAME } from "@/constants";
+import { raw_base_url, REPO_FULL_NAME } from "@/constants";
 import axios from "axios"
 
 export const getRepoTree = () => {
@@ -4360,7 +4360,7 @@ export const getRepoTree = () => {
 }
 
 const githubRawFileApi = axios.create({
-    baseURL: `https://raw.githubusercontent.com/${REPO_FULL_NAME}/main/`,
+    baseURL: raw_base_url,
     timeout: 10000,
 })
 

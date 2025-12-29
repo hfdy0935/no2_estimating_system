@@ -106,12 +106,14 @@ class CNEMCDownloader:
         # 已有的dt str, ymdh
         cur_dts: list[str] = []
         # 今天已有的
-        cur_path = path_util.get_yymd_path_under_ds(['cnemc'], dt)
+        cur_path = path_util.get_yymd_path_under_ds(['cnemc', 'raw'], dt)
         if os.path.exists(cur_path):
             df = pd.read_parquet(cur_path)
             cur_dts.extend(list(df.time.unique()))
         # 昨天已有的
-        pre_path = path_util.get_yymd_path_under_ds(['cnemc'], dt - timedelta(days=1))
+        pre_path = path_util.get_yymd_path_under_ds(
+            ['cnemc', 'raw'], dt - timedelta(days=1)
+        )
         if os.path.exists(pre_path):
             df = pd.read_parquet(pre_path)
             cur_dts.extend(list(df.time.unique()))
@@ -135,10 +137,27 @@ class CNEMCDownloader:
         # 根据天分组保存
         for ymd, group in df.groupby(df['time'].str[:-2]):
             savepath = path_util.get_yymd_path_under_ds(
-                ['cnemc'], dt=time_util.ymd2dt(ymd)
+                ['cnemc', 'raw'], dt=time_util.ymd2dt(ymd)
             )
             parquet_util.append(df=group, path=savepath)
-            self.log(ymd, f'下载成功，已保存至{path_util.relative2logpath(savepath)}')
+            self.log(
+                ymd, f'下载成功，raw已保存至{path_util.relative2logpath(savepath)}'
+            )
+        # 存为utc
+        df['time'] = (
+            pd.to_datetime(df['time'], format='%Y%m%d%H')
+            .dt.tz_localize('Asia/Shanghai')
+            .dt.tz_convert('UTC')
+            .dt.strftime('%Y%m%d%H')
+        )
+        for ymd, group in df.groupby(df['time'].str[:-2]):
+            savepath = path_util.get_yymd_path_under_ds(
+                ['cnemc', 'utc'], dt=time_util.ymd2dt(ymd)
+            )
+            parquet_util.append(df=group, path=savepath)
+            self.log(
+                ymd, f'下载成功，utc已保存至{path_util.relative2logpath(savepath)}'
+            )
 
 
 def download_cnemc(dt: Maybe[datetime] = None):

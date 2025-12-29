@@ -12,12 +12,23 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    NAlert: typeof import('naive-ui')['NAlert']
+    NCard: typeof import('naive-ui')['NCard']
+    NFlex: typeof import('naive-ui')['NFlex']
+    NFloatButton: typeof import('naive-ui')['NFloatButton']
+    NFloatButtonGroup: typeof import('naive-ui')['NFloatButtonGroup']
+    NForm: typeof import('naive-ui')['NForm']
+    NFormItem: typeof import('naive-ui')['NFormItem']
+    NIcon: typeof import('naive-ui')['NIcon']
     NLayout: typeof import('naive-ui')['NLayout']
     NLayoutSider: typeof import('naive-ui')['NLayoutSider']
     NMenu: typeof import('naive-ui')['NMenu']
     NMessageProvider: typeof import('naive-ui')['NMessageProvider']
+    NPopover: typeof import('naive-ui')['NPopover']
+    NSelect: typeof import('naive-ui')['NSelect']
     NSpace: typeof import('naive-ui')['NSpace']
     NSpin: typeof import('naive-ui')['NSpin']
+    NSwitch: typeof import('naive-ui')['NSwitch']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
@@ -25,12 +36,23 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
+  const NAlert: typeof import('naive-ui')['NAlert']
+  const NCard: typeof import('naive-ui')['NCard']
+  const NFlex: typeof import('naive-ui')['NFlex']
+  const NFloatButton: typeof import('naive-ui')['NFloatButton']
+  const NFloatButtonGroup: typeof import('naive-ui')['NFloatButtonGroup']
+  const NForm: typeof import('naive-ui')['NForm']
+  const NFormItem: typeof import('naive-ui')['NFormItem']
+  const NIcon: typeof import('naive-ui')['NIcon']
   const NLayout: typeof import('naive-ui')['NLayout']
   const NLayoutSider: typeof import('naive-ui')['NLayoutSider']
   const NMenu: typeof import('naive-ui')['NMenu']
   const NMessageProvider: typeof import('naive-ui')['NMessageProvider']
+  const NPopover: typeof import('naive-ui')['NPopover']
+  const NSelect: typeof import('naive-ui')['NSelect']
   const NSpace: typeof import('naive-ui')['NSpace']
   const NSpin: typeof import('naive-ui')['NSpin']
+  const NSwitch: typeof import('naive-ui')['NSwitch']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
 }

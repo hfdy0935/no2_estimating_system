@@ -17,6 +17,9 @@ importers:
       '@antv/l7-maps':
         specifier: ^2.23.1
         version: 2.23.1
+      '@types/lodash':
+        specifier: ^4.17.21
+        version: 4.17.21
       '@vicons/ionicons5':
         specifier: ^0.13.0
         version: 0.13.0
@@ -29,6 +32,15 @@ importers:
       geotiff:
         specifier: 2.1.4-beta.1
         version: 2.1.4-beta.1
+      hyparquet:
+        specifier: ^1.23.3
+        version: 1.23.3
+      hyparquet-compressors:
+        specifier: ^1.1.1
+        version: 1.1.1
+      lodash-es:
+        specifier: ^4.17.22
+        version: 4.17.22
       naive-ui:
         specifier: ^2.43.2
         version: 2.43.2(vue@3.5.26(typescript@5.9.3))
@@ -1483,6 +1495,9 @@ packages:
   function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
 
+  fzstd@0.1.1:
+    resolution: {integrity: sha512-dkuVSOKKwh3eas5VkJy1AW1vFpet8TA/fGmVA5krThl8YcOVE/8ZIoEA1+U1vEn5ckxxhLirSdY837azmbaNHA==}
+
   gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
     engines: {node: '>=6.9.0'}
@@ -1565,6 +1580,15 @@ packages:
 
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
+
+  hyparquet-compressors@1.1.1:
+    resolution: {integrity: sha512-yx7aA3Rhj0YycbdV71+XznQSLAefa4cT0urpgNXy4aM6eSeCknaVDNne8y45Uz74Fb15yyXUzOStlceOJBan7A==}
+
+  hyparquet@1.23.3:
+    resolution: {integrity: sha512-6ppbspbAH8ZgMT/8cUs3YQQF5I6q85oNI1ToTJX9nq5YMgZDM+BoU6Lc7QyS5Ve13xx1Vw+aacZ/Qh1N/Pxeyg==}
+
+  hysnappy@1.0.0:
+    resolution: {integrity: sha512-MNrC4NfwDGPb889O6gIfEtbvEZCSWUsSEhsz4Oq2FRcpGtXHfeVz3KciSPp5Pnnz1NjFMgDQNfxdJozymJEDDA==}
 
   iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
@@ -3968,6 +3992,8 @@ snapshots:
 
   function-bind@1.1.2: {}
 
+  fzstd@0.1.1: {}
+
   gensync@1.0.0-beta.2: {}
 
   geojson-vt@3.2.1: {}
@@ -4046,6 +4072,15 @@ snapshots:
   highlight.js@11.11.1: {}
 
   hookable@5.5.3: {}
+
+  hyparquet-compressors@1.1.1:
+    dependencies:
+      fzstd: 0.1.1
+      hysnappy: 1.0.0
+
+  hyparquet@1.23.3: {}
+
+  hysnappy@1.0.0: {}
 
   iconv-lite@0.4.24:
     dependencies:

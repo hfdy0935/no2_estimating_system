@@ -9,3 +9,6 @@ export const ChinaRect = {
     maxlon: 136,
     maxlat: 54
 } as const
+
+export const raw_base_url = `https://raw.githubusercontent.com/${REPO_FULL_NAME}/main/`
+

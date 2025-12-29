@@ -4,10 +4,6 @@ import type { ILayer, Scene } from '@antv/l7'
 
 export const useMapStore = defineStore('map', () => {
     const scene = ref<Scene>()
-    // 格式化后每个时间点的数据，{ymdh: data}
-    const formattedData = ref<Record<string, object>>({})
-    // 选中的时间
-    const selectedTime = ref<string>('')
     const loading = ref(false)
     /** 当前显示的数据图层，来自parquet或者tif，只有一个 */
     const curDataLayer = ref<ILayer>()
@@ -16,7 +12,13 @@ export const useMapStore = defineStore('map', () => {
         if (curDataLayer.value)
             scene.value?.removeLayer(curDataLayer.value)
     }
-    /** 数据列名 */
-    const columns = ref<string[]>([])
-    return { scene, formattedData, selectedTime, loading, curDataLayer, removeCurDataLayer, columns }
+    // 打开的tif or parquet数据
+    const curData = ref<Float64Array[]>([])
+    // 数据宽高
+    const curDataInfo = ref<{
+        width: number, height: number
+    }>({ width: 0, height: 0 })
+    // 当前选中的波段索引
+    const selectedBandIdx = ref<number>(0)
+    return { scene, loading, curDataLayer, removeCurDataLayer, curData, curDataInfo, selectedBandIdx }
 })

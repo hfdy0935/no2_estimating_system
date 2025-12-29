@@ -12,7 +12,7 @@ wheels/
 
 
 # 本地数据
-shared/data_source/cnemc/2023/*
+shared/data_source/cnemc/**/2023/*
 shared/data_source/era5/2023/*
 shared/data_source/gems/2023/*
 shared/data_source/geoscf/2023/*

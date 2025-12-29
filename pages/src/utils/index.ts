@@ -1,20 +1,19 @@
-import { REPO_FULL_NAME } from "@/constants";
+import { raw_base_url, REPO_FULL_NAME } from "@/constants";
 import type { GitHubTreeResp } from "@/types";
 import {
     FolderOutline, ImageOutline
 } from '@vicons/ionicons5'
+import { asyncBufferFromUrl, parquetReadObjects, type AsyncBuffer } from 'hyparquet'
+import { compressors } from 'hyparquet-compressors'
 import { NEllipsis, NIcon, type MenuOption } from 'naive-ui'
+import _ from 'lodash-es'
 
 export const isTopLevel = (path: string) => !path.includes('/')
-function renderIcon(icon: Component) {
+export const isParquet = (path: string) => path.endsWith('.parquet')
+export function renderIcon(icon: Component) {
     return () => h(NIcon, null, { default: () => h(icon) })
 }
-
-
 export const isFolder = (item: GitHubTreeResp['tree'][number]) => item.type === 'tree'
-
-/** B => MB */
-const formatSize = (size: number) => (size / 1024 / 1024).toFixed(2)
 
 /**
  * GitHub扁平目录树转为层级，返回shared目录下的数据
@@ -41,7 +40,7 @@ export const flatTree2MenuOption = (tree: GitHubTreeResp['tree']): MenuOption[] 
     map.set('shared/estimate', estimateNode)
     map.set('shared/reconstruct', reconstructNode)
     map.set('shared', genNode('shared', [estimateNode, reconstructNode]))
-    // 
+    // y/ymd/xxx.tif
     const estimateItems = tree.filter(el => el.path.startsWith('shared/estimate/tif/'))
     const reconstructItems = tree.filter(el => el.path.startsWith('shared/reconstruct/tif/'))
     for (const item of [...estimateItems, ...reconstructItems]) {
@@ -50,7 +49,7 @@ export const flatTree2MenuOption = (tree: GitHubTreeResp['tree']): MenuOption[] 
             label: () => h(NEllipsis, null, { default: () => isTopLevel('/') ? item.path : item.path.split('/').slice(-1)[0] }),
             icon: isFolder(item) ? renderIcon(FolderOutline) : renderIcon(ImageOutline),
             children: isFolder(item) ? [] : undefined,
-            extra: isFolder(item) ? undefined : `${((item.size ?? 0) / 1024 / 1024).toFixed(2)}MB`
+            extra: isFolder(item) ? undefined : `  ${((item.size ?? 0) / 1024 / 1024).toFixed(2)}MB`
         }
         map.set(item.path, node)
         const parent = map.get(item.path.split('/').slice(0, -1).join('/'))
@@ -58,7 +57,7 @@ export const flatTree2MenuOption = (tree: GitHubTreeResp['tree']): MenuOption[] 
             parent.children?.push(node)
         }
     }
-    return map.get('shared')?.children!
+    return map.get('shared')?.children ?? []
 }
 
 
@@ -72,5 +71,12 @@ export const extractFilename = (path: string): string => {
 }
 
 
-export const raw_base_url = `https://raw.githubusercontent.com/${REPO_FULL_NAME}/main/`
-
+/** 请求并解析parquet */
+export const fetchAndParseParquet = async (path: string) => {
+    const file: AsyncBuffer = await asyncBufferFromUrl({ url: `${raw_base_url}${path}` })
+    const data = await parquetReadObjects({ file, compressors })
+    // 原来是object[]，按照时间分组解析
+    const sortedData = _.sortBy(data, 'time')
+    const groupedObj = _.groupBy(sortedData, 'time')
+    return _.values(groupedObj)
+}
