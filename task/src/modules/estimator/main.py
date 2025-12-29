@@ -142,6 +142,7 @@ class Estimator:
         self.log(f"估算成功，tif已保存至{savepath.parent}/")
         # 5. 数据记录
         est_no2_util.log(self.ymd)
+        # 6. TODO 匹配估算结果和CNEMC，保存，前端请求文件，画散点折线图
 
 
 def estimate_no2(dt: datetime):

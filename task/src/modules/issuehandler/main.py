@@ -92,7 +92,6 @@ class Emailtool:
                 time_str[:8],
                 f'{time_str}.tif',
             )
-            breakpoint()
             if not path.exists():
                 continue
             zf.write(
