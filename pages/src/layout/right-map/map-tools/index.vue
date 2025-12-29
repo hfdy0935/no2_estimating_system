@@ -2,18 +2,14 @@
     <div class="box">
         <n-flex vertical>
             <n-float-button-group shape="square" position="relative">
-                <time-filter></time-filter>
-            </n-float-button-group>
-            <n-float-button-group shape="square" position="relative">
-                <parquet-parser></parquet-parser>
+                <statistic-tool></statistic-tool>
             </n-float-button-group>
         </n-flex>
     </div>
 </template>
 
 <script setup lang="ts">
-import ParquetParser from './parquet-parser.vue';
-import TimeFilter from './time-filter.vue';
+import StatisticTool from './statistic-tool.vue';
 defineOptions({
     name: 'MapTools'
 });

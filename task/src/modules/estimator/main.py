@@ -1,6 +1,7 @@
 from datetime import datetime
 import logging
 from pathlib import Path
+from typing import cast
 from catboost import CatBoostRegressor
 import pandas as pd
 from scipy.spatial import cKDTree  # type: ignore
@@ -129,10 +130,16 @@ class Estimator:
         parquet_util.save(df=pred, path=savepath)
         self.log(f"估算成功，parquet已保存至{path_util.relative2logpath(savepath)}")
         # 4. 保存tif
-        savepath = path_util.get_yymd_path_under_est(['tif'], self.dt, extension='tif')
-        df_util.df2tif2save(df=pred, value_column=self.y_column, savepath=savepath)
-        self.log(f"估算成功，tif已保存至{path_util.relative2logpath(savepath)}")
-        est_no2_util.log(msg=self.ymd)
+        for time_str, group in pred.groupby('time'):
+            time_str = cast(str, time_str)
+            savepath = Path(
+                path_util.under_est(Path('tif')),
+                time_str[:4],
+                time_str[:8],
+                f'{time_str}.parquet',
+            )
+            df_util.df2tif2save(df=group, value_column=self.y_column, savepath=savepath)
+        self.log(f"估算成功，tif已保存至{savepath.parent}")
 
 
 def estimate_no2(dt: datetime):

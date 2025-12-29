@@ -72,22 +72,20 @@ class PathUtil:
         self,
         pre: list[str | Path],
         dt: datetime,
-        extension: str = 'parquet',
         midpath: str = '',
     ) -> Path:
-        """拼接在`shared/data_source/xxx/xxx/`之后的路径，末尾满足`year/[{midpath}/]ymd.{extension}`格式
+        """拼接在`shared/data_source/xxx/xxx/`之后的路径，末尾满足`year/[{midpath}/]ymd.parquet`格式
 
         Args:
             pre (list[str | Path]): 前缀列表，每一级路径分开，即上面的xxx/xxx
             dt (datetime): _description_
-            extension (str): 文件扩展名，默认parquet
             midpath (str): 在y和ymd之间的部分
 
         Returns:
             Path: 完整路径
         """
         return self.under_ds(
-            Path(*pre, f"{dt.year}", midpath, f"{time_util.dt2ymd(dt)}.{extension}")
+            Path(*pre, f"{dt.year}", midpath, f"{time_util.dt2ymd(dt)}.parquet")
         )
 
     def exists_under_ds(self, path: Path) -> bool:
@@ -113,21 +111,18 @@ class PathUtil:
         """
         return self.rec / path
 
-    def get_yymd_path_under_rec(
-        self, pre: list[str | Path], dt: datetime, extension: str = 'parquet'
-    ) -> Path:
-        """拼接在`shared/reconstruct/xxx/xxx/`之后的路径，末尾满足`year/ymd.{extension}`格式
+    def get_yymd_path_under_rec(self, pre: list[str | Path], dt: datetime) -> Path:
+        """拼接在`shared/reconstruct/xxx/xxx/`之后的路径，末尾满足`year/ymd.parquet`格式
 
         Args:
             pre (str): 前缀列表，每一级路径分开，即上面的xxx/xxx
             dt (datetime): _description_
-            extension (str): 文件扩展名，默认parquet
 
         Returns:
             Path: 完整路径
         """
         return self.under_rec(
-            Path(*pre, f"{dt.year}", f"{time_util.dt2ymd(dt)}.{extension}")
+            Path(*pre, f"{dt.year}", f"{time_util.dt2ymd(dt)}.parquet")
         )
 
     # ------------------------------------ est ----------------------------------- #F
@@ -142,21 +137,18 @@ class PathUtil:
         """
         return self.est / path
 
-    def get_yymd_path_under_est(
-        self, pre: list[str | Path], dt: datetime, extension: str = 'parquet'
-    ) -> Path:
-        """拼接在`shared/estimate/xxx/xxx/`之后的路径，末尾满足`year/ymd.{extension}`格式
+    def get_yymd_path_under_est(self, pre: list[str | Path], dt: datetime) -> Path:
+        """拼接在`shared/estimate/xxx/xxx/`之后的路径，末尾满足`year/ymd.parquet`格式
 
         Args:
             pre (str): 前缀列表，每一级路径分开，即上面的xxx/xxx
             dt (datetime): _description_
-            extension (str): 文件扩展名，默认parquet
 
         Returns:
             Path: 完整路径
         """
         return self.under_est(
-            Path(*pre, f"{dt.year}", f"{time_util.dt2ymd(dt)}.{extension}")
+            Path(*pre, f"{dt.year}", f"{time_util.dt2ymd(dt)}.parquet")
         )
 
 
@@ -294,6 +286,8 @@ class DataFrameUtil:
     def df2tif2save(self, df: pd.DataFrame, value_column: str, savepath: Path):
         """df转为tiff，4326转为3857并保存，便于在antv l7显示
 
+        >>> 要求这里的df是一个时刻的，作为一个tif保存，只有一个波段
+
         Args:
             df (pd.DataFrame): _description_
             value_column (str): _description_
@@ -355,20 +349,6 @@ class DataFrameUtil:
                 nodata=np.nan,
             ) as dst_3857:
                 dst_3857.write(data_3857, 1)
-
-        # with rasterio.open(
-        #     savepath,
-        #     'w',
-        #     driver='GTiff',
-        #     height=height,
-        #     width=width,
-        #     count=1,  # 波段数（单波段）
-        #     dtype=data_array.dtype,  # 数据类型（与数组一致）
-        #     crs=crs,
-        #     transform=transform,
-        #     nodata=np.nan,  # 标记缺失值
-        # ) as dst:
-        #     dst.write(data_array, 1)  # 将数组写入第1波段
 
     def read_era5(self, dt: datetime) -> pd.DataFrame:
         """读取era5的所有部分"""
@@ -617,7 +597,7 @@ class DataRecordUtil:
     @property
     @lru_cache
     def dt_ls(self) -> list[datetime]:
-        """获取时间列表"""
+        """获取时间ymd列表"""
         ls = self.get()
         if len(ls) == 0:
             return []

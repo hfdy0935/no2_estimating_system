@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -54,34 +54,14 @@ class FetchIssueResult:
 class IssueContentResult:
     """解析issue内容的结果"""
 
-    dates: list[datetime] = field(default_factory=list)
+    date: datetime
     email: str = ''
 
-    def get_tru_send_dates(self):
-        """实际发送的数据时间列表"""
-        return [
-            dt
-            for dt in est_no2_util.dt_ls
-            if dt >= self.dates[0] and dt <= self.dates[1]
-        ]
-
-    @property
-    def cover(self):
-        """已有数据是否把查询时间全覆盖"""
-        return (
-            len(self.get_tru_send_dates())
-            == (self.dates[1] - self.dates[0]) / timedelta(days=1) + 1
-        )
-
-    @property
-    def tru_send_dates_bound_str(self) -> tuple[str, str]:
-        """真实发送的数据首尾时间字符串元组，(start,end)"""
-        if len(self.get_tru_send_dates()) == 0:
-            return ('-', '-')
-        return (
-            time_util.dt2ymd(self.get_tru_send_dates()[0]),
-            time_util.dt2ymd(self.get_tru_send_dates()[-1]),
-        )
+    def get_dates_need_send(self):
+        """实际发送的那天的时间列表"""
+        if self.date not in est_no2_util.dt_ls:
+            return []
+        return [self.date.replace(hour=i) for i in range(24)]
 
 
 class Emailtool:
@@ -91,34 +71,57 @@ class Emailtool:
         self.template: Template = Template(
             open(Path(SHARED_DIR, 'email_template.html'), 'r', encoding='utf-8').read()
         )
+        self.batch_size = 12  # 每个邮件多少个tif
 
-    def _prepare_data(self, param: IssueContentResult) -> BytesIO:
+    def _prepare_data(self, dts: list[datetime]) -> BytesIO:
         """根据解析的issue内容参数找到est_no2的tif文件，并压缩
 
         Args:
-            param (IssueContentResult): _description_
+            dts (list[datetime]): 本次要准备的时间范围(list[ymdh])，可能文件总量过大，要分批发送
 
         Returns:
             zipfile.ZipFile: _description_
         """
         zip_buffer = BytesIO()
         zf = zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED)
-        for dt in param.get_tru_send_dates():
-            path = path_util.get_yymd_path_under_est(['tif'], dt, extension='tif')
+        for dt in dts:
+            time_str = time_util.dt2ymdh(dt)
+            path = Path(
+                path_util.under_est(Path('tif')),
+                time_str[:4],
+                time_str[:8],
+                f'{time_str}.parquet',
+            )
             if not path.exists():
                 continue
-            zf.write(path, arcname=path.name)
+            zf.write(
+                path,
+                arcname=Path(
+                    time_str[:4],
+                    time_str[:8],
+                    f'{time_str}.parquet',
+                ),
+            )
         zip_buffer.seek(0)
         return zip_buffer
 
-    def send(self, issue_info: FetchIssueResult, content_info: IssueContentResult):
+    def _send_one(
+        self,
+        issue_info: FetchIssueResult,
+        content_info: IssueContentResult,
+        dts: list[datetime],
+        cur: int,
+        total: int,
+    ):
         """发送携带数据的邮件
 
         Args:
             issue_info (FetchIssueResult): _description_
             content_info (IssueContentResult): _description_
+            dts (list[datetime]): 本次要准备的时间范围(list[ymdh])，可能文件总量过大，要分批发送
+            cur (int): 本次发送的序号，从1开始
+            ttoal (int): 总的发送的数量
         """
-        # 1. 构建邮件
         msg = MIMEMultipart()
         msg['From'] = self.email
         msg['To'] = content_info.email
@@ -130,19 +133,18 @@ class Emailtool:
                     issue_username=issue_info.username,
                     issue_content=issue_info.content,
                     issue_link=f"https://github.com/{SecretConfig.repo_full_name}/issues/{SecretConfig.issue_number}",
-                    cover=content_info.cover,
-                    available_start=available_start,
-                    available_end=available_end,
-                    start=content_info.tru_send_dates_bound_str[0],
-                    end=content_info.tru_send_dates_bound_str[1],
+                    start=time_util.dt2ymdh(dts[0]),
+                    end=time_util.dt2ymdh(dts[-1]),
                     repo_link='https://github.com/hfdy0935/no2_estimating_system',
+                    cur=cur,
+                    total=total,
                 ),
                 'html',
                 'utf-8',
             )
         )
         # 2. 添加数据为附件
-        zip_buffer = self._prepare_data(content_info)
+        zip_buffer = self._prepare_data(dts)
         part = MIMEBase("application", "zip")
         part.set_payload(zip_buffer.getvalue())
         encoders.encode_base64(part)
@@ -153,10 +155,35 @@ class Emailtool:
         server = smtplib.SMTP_SSL('smtp.qq.com', smtplib.SMTP_SSL_PORT)
         server.login(self.email, self.service_code)
         server.sendmail(self.email, content_info.email, msg.as_string())
+        log(f'邮件发送进度: {cur} / {total}')
         try:
             server.close()
         except:
             pass
+
+    def send(
+        self,
+        issue_info: FetchIssueResult,
+        content_info: IssueContentResult,
+    ):
+        """发送携带数据的邮件
+
+        Args:
+            issue_info (FetchIssueResult): _description_
+            content_info (IssueContentResult): _description_
+        """
+        ls = [
+            content_info.get_dates_need_send()[i : i + self.batch_size]
+            for i in range(0, len(content_info.get_dates_need_send()), self.batch_size)
+        ]
+        for idx, cur in enumerate(ls, 1):
+            self._send_one(
+                issue_info=issue_info,
+                content_info=content_info,
+                dts=cur,
+                cur=idx,
+                total=len(ls),
+            )
 
 
 class IssueTool:
@@ -238,17 +265,11 @@ class IssueHandler:
         """解析请求的issue内容
 
         >>> Example
-        20251218-20251220, xxx@qq.com
-        20251218, xxx@qq.com
+        目前只支持：20251218, xxx@qq.com
         """
-        period, email = content.split(',')
-        if '-' in period:
-            start, end = period.split('-')
-        else:
-            start = period
-            end = period
+        day, email = content.split(',')
         return IssueContentResult(
-            dates=[time_util.ymd2dt(start.strip()), time_util.ymd2dt(end.strip())],
+            date=time_util.ymd2dt(day),
             email=email.strip(),
         )
 
@@ -267,14 +288,12 @@ class IssueHandler:
             return
         try:
             content_info = self._parse_issue_content(issue_info.content)
-            if len(content_info.get_tru_send_dates()) == 0:
+            if len(content_info.get_dates_need_send()) == 0:
                 self.issue_tool.reply_no_data()
                 return
             self.email_tool.send(issue_info, content_info)
-            cover_msg = f'{issue_info.username}你好，已将数据发送至指定邮箱~'
-            not_cover_msg = f'{issue_info.username}你好，目前可获取数据的时间范围为：{available_start}-{available_end}，已将{content_info.tru_send_dates_bound_str[0]}-{content_info.tru_send_dates_bound_str[1]}的数据发送至指定邮箱~'
             self.issue_tool.reply_success(
-                cover_msg if content_info.cover else not_cover_msg
+                f'{issue_info.username}你好，已将数据发送至指定邮箱，数据量略大，会分批发送~'
             )
             self.issue_tool.close()
         except Exception as e:

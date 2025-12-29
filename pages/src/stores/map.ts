@@ -12,7 +12,7 @@ export const useMapStore = defineStore('map', () => {
         if (curDataLayer.value)
             scene.value?.removeLayer(curDataLayer.value)
     }
-    // 打开的tif or parquet数据
+    // 打开的tif数据
     const curData = ref<Float64Array[]>([])
     // 数据宽高
     const curDataInfo = ref<{

@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import logging
 from pathlib import Path
+from typing import cast
 import numpy as np
 from catboost import CatBoostRegressor
 import pandas as pd
@@ -173,14 +174,22 @@ class Reconstructor:
             )
             record.append(self.ymd)
             json.dump(record, open(path_util.under_rec(Path('lack_gems.json'))))
+        df_util.format_columns(df=pred, columns=[self.y_column], n=3)
         # 6. 保存parquet
         savepath = path_util.get_yymd_path_under_rec(['pq'], self.dt)
         parquet_util.save(df=pred, path=savepath)
-        self.log(f"重建成功，已保存至{path_util.relative2logpath(savepath)}")
+        self.log(f"重建成功，parquet已保存至{path_util.relative2logpath(savepath)}")
         # 7. 保存tif
-        savepath = path_util.get_yymd_path_under_rec(['tif'], self.dt, extension='tif')
-        df_util.df2tif2save(df=pred, value_column=self.y_column, savepath=savepath)
-        self.log(f"估算成功，tif已保存至{path_util.relative2logpath(savepath)}")
+        for time_str, group in pred.groupby('time'):
+            time_str = cast(str, time_str)
+            savepath = Path(
+                path_util.under_rec(Path('tif')),
+                time_str[:4],
+                time_str[:8],
+                f'{time_str}.parquet',
+            )
+            df_util.df2tif2save(df=group, value_column=self.y_column, savepath=savepath)
+        self.log(f"重建成功，tif已保存至{savepath.parent}")
 
 
 def reconstruct_no2(dt: datetime):
