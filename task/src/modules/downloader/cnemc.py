@@ -62,13 +62,17 @@ class CNEMCDownloader:
                     .str.replace("时", "")
                     .str.replace(' ', '')
                 ),
+                'area': df['Area'],
+                'position_name': df['PositionName'],
+                'station_code': df['StationCode'],
+                'quality': df['Quality'],
                 self.no2_column: pd.to_numeric(df['NO2'], errors='coerce'),
             }
         )
         df = df[df[self.no2_column].notna()]
         df = df[df[self.no2_column] > 0]
-        # 划分网格
-        df = resample_util.grid_divide_resample(df=df, columns=[self.no2_column])
+        # 划分网格，只看结果不训练，不用划分
+        # df = resample_util.grid_divide_resample(df=df, columns=[self.no2_column])
         (
             df_util.format_columns(
                 df=df, columns=[self.no2_column], n=3

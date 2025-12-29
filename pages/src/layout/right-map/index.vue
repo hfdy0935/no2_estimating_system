@@ -18,10 +18,13 @@ import * as GeoTIFF from 'geotiff'
 import { useMenuStore } from '@/stores/menu';
 import { ChinaRect } from '@/constants';
 
+defineOptions({
+    name: 'MapRender'
+})
 const mapEL = useTemplateRef('mapEl')
 const { scene, loading, curDataLayer } = storeToRefs(useMapStore())
 const { removeCurDataLayer } = useMapStore()
-const { selectedMenuOption, collapsed } = storeToRefs(useMenuStore())
+const { selectedMenuOption } = storeToRefs(useMenuStore())
 
 /** 请求tif，解析，添加到scene */
 const handleTif = async () => {
@@ -97,9 +100,6 @@ watchEffect(() => {
         handleTif()
     })
 })
-
-/** 地图区域宽度 */
-const mapWidth = computed(() => collapsed.value ? '94vw' : '85vw')
 </script>
 
 <style scoped>
@@ -109,7 +109,7 @@ const mapWidth = computed(() => collapsed.value ? '94vw' : '85vw')
 }
 
 #map {
-    width: v-bind(mapWidth);
+    width: 100vw;
     height: 100vh;
 }
 </style>

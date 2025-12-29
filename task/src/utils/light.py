@@ -292,7 +292,7 @@ class DataFrameUtil:
         return df[df[value_column] != fill_value]
 
     def df2tif2save(self, df: pd.DataFrame, value_column: str, savepath: Path):
-        """df转为tiff并保存
+        """df转为tiff，4326转为3857并保存，便于在antv l7显示
 
         Args:
             df (pd.DataFrame): _description_
@@ -322,19 +322,15 @@ class DataFrameUtil:
                 transform=transform,
                 nodata=np.nan,
             ) as dst_mem:
-                dst_mem.write(data_array, 1)  # 写入内存
-
-                # ------------------- 新增：内存中重投影为3857（无中间文件） -------------------
+                dst_mem.write(data_array, 1)
                 # 计算3857投影参数
                 dst_crs = rasterio.crs.CRS.from_epsg(3857)  # type: ignore
                 transform_3857, width_3857, height_3857 = calculate_default_transform(
                     dst_mem.crs, dst_crs, dst_mem.width, dst_mem.height, *dst_mem.bounds
                 )
-                # 创建3857投影的数据数组
                 data_3857 = np.empty((height_3857, width_3857), dtype=data_array.dtype)  # type: ignore
-                data_3857.fill(np.nan)  # 初始化缺失值
-
-                # 内存中执行重投影（无文件IO）
+                data_3857.fill(np.nan)
+                # 内存中执行重投影
                 reproject(
                     source=rasterio.band(dst_mem, 1),
                     destination=data_3857,
