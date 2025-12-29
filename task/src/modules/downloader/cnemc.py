@@ -143,13 +143,13 @@ class CNEMCDownloader:
             self.log(time_util.dt2ymdh(dt), '无符合要求的数据，本次流程结束')
             return
         # 根据天分组保存为utc
-        df['time'] = (
+        df['utc_time'] = (
             pd.to_datetime(df['time'], format='%Y%m%d%H')
             .dt.tz_localize('Asia/Shanghai')
             .dt.tz_convert('UTC')
             .dt.strftime('%Y%m%d%H')
         )
-        for ymd, group in df.groupby(df['time'].str[:-2]):
+        for ymd, group in df.groupby(df['utc_time'].str[:-2]):
             savepath = path_util.get_yymd_path_under_ds(
                 ['cnemc'], dt=time_util.ymd2dt(ymd)
             )
