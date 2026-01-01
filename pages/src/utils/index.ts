@@ -1,5 +1,5 @@
 import { raw_base_url } from "@/constants";
-import type { GitHubTreeResp, TotalMenuOptions } from "@/types";
+import type { GitHubTreeResp } from "@/types";
 import {
     FolderOutline, ImageOutline
 } from '@vicons/ionicons5'
@@ -44,13 +44,14 @@ const githubTreeItem2MenuOption = (el: GitHubTreeResp['tree'][number]): MenuOpti
  * 从github目录树中提取每天和每小时的est_no2，拼装成MenuOption[]
  * @param tree 
  */
-export const extractEstNO2MenuOptions = (tree: GitHubTreeResp['tree']): TotalMenuOptions => {
+export const extractEstNO2MenuOptions = (tree: GitHubTreeResp['tree']): {
+    daily: MenuOption[],
+    hourly: MenuOption[]
+} => {
     // 目录比它里面的子目录/子文件早出现
     // 用于快速查找父目录
-    const map = new Map<string, MenuOption>()
+    let map = new Map<string, MenuOption>()
     // 1. hourly
-    console.log(tree);
-
     const hourlyItems = tree.filter(el => el.path.startsWith('shared/estimate/hourly_tif/')).map(el => {
         el.path = el.path.replace('shared/estimate/hourly_tif/', '')
         return el
@@ -64,10 +65,12 @@ export const extractEstNO2MenuOptions = (tree: GitHubTreeResp['tree']): TotalMen
         } else {
             hourlyMenuOptions.push(item)
         }
-        if (isDir(el)) map.set(el.path, item)
+        if (isDir(el)) {
+            map.set(el.path, item)
+        }
     }
     // 2. daily
-    map.clear()
+    map = new Map<string, MenuOption>()
     const dailyItems = tree.filter(el => el.path.startsWith('shared/estimate/daily_tif/')).map(el => {
         el.path = el.path.replace('shared/estimate/daily_tif/', '')
         return el
@@ -79,7 +82,7 @@ export const extractEstNO2MenuOptions = (tree: GitHubTreeResp['tree']): TotalMen
         if (parent) {
             parent.children?.push(item)
         } else {
-            hourlyMenuOptions.push(item)
+            dailyMenuOptions.push(item)
         }
         if (isDir(el)) map.set(el.path, item)
     }
@@ -98,5 +101,5 @@ export const fetchAndParseParquet = async (path: string) => {
     // 原来是object[]，按照时间分组解析
     const sortedData = _.sortBy(data, 'time')
     const groupedObj = _.groupBy(sortedData, 'time')
-    return _.values(groupedObj)
+    return groupedObj
 }

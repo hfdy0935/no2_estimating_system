@@ -441,9 +441,11 @@ class ResampleUtil:
         df['lon'] = (df.lon / resolution).round() * resolution
         df['lat'] = (df.lat / resolution).round() * resolution
         df_util.format_columns(df, ["lon", "lat"])
-        groupby_columns = (
-            ["lon", "lat", "time"] if "time" in df.columns else ["lon", "lat"]
-        )
+        groupby_columns = ["lon", "lat"]
+        if 'time' in df.columns:
+            groupby_columns.append('time')
+        if 'beijing_time' in df.columns:
+            groupby_columns.append('beijing_time')
         grid_mean = df.groupby(groupby_columns, as_index=False)[columns].mean()
         return grid_mean
 

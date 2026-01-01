@@ -132,7 +132,7 @@ class Estimator:
         )
         cnemc = resample_util.grid_divide_resample(df=cnemc, columns=['cnemc_no2'])
         cnemc = cnemc.merge(right=est, on=['lon', 'lat', 'time'])[
-            [*self.y_columns, 'cnemc_no2']
+            [*self.y_columns, 'beijing_time', 'cnemc_no2']
         ]
         df_util.save_parquet(
             df=cnemc,

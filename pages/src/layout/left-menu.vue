@@ -1,8 +1,35 @@
 <template>
-    <n-layout-sider bordered collapse-mode="width" :collapsed-width="96" :width="300" :collapsed show-trigger
-        style="max-height:100vh" :native-scrollbar="false" @collapse="collapsed = true" @expand="collapsed = false">
-        <n-menu v-model:value="activeKey" :collapsed :collapsed-width="96" :collapsed-icon-size="22" :indent="14"
-            :options @update-value="(value, option) => selectedMenuOption = option" />
+    <n-layout-sider bordered collapse-mode="width" :collapsed-width="0" :width="240" :collapsed show-trigger
+        style="max-height:100vh;padding: 10px;" :native-scrollbar="false" @collapse="collapsed = true"
+        @expand="collapsed = false">
+        <n-tabs type="segment" animated v-model:value="selectedMenuType">
+            <n-tab-pane :name="MenuType.DAILY" tab="每天">
+                <n-menu v-if="dailyMenuOptions.length" v-model:value="activeKey" :collapsed :collapsed-width="96"
+                    :collapsed-icon-size="22" :indent="14" :options="dailyMenuOptions"
+                    @update-value="(value, option) => selectedMenuOption = option" />
+                <n-empty v-else description="暂无数据" :show-icon="false" style="padding-top: 240px;">
+                    <template #extra>
+                        <n-button size="small" @click="openRepo">
+                            去GitHub仓库看看
+                            <template #icon><img src="/github.com_.png" alt="" width="20"></template>
+                        </n-button>
+                    </template>
+                </n-empty>
+            </n-tab-pane>
+            <n-tab-pane :name="MenuType.HOURLUY" tab="每时">
+                <n-menu v-if="hourlyMenuOptions.length" v-model:value="activeKey" :collapsed :collapsed-width="96"
+                    :collapsed-icon-size="22" :indent="14" :options="hourlyMenuOptions"
+                    @update-value="(value, option) => selectedMenuOption = option" />
+                <n-empty v-else description="暂无数据" :show-icon="false" style="padding-top: 240px;">
+                    <template #extra>
+                        <n-button size="small" @click="openRepo">
+                            去GitHub仓库看看
+                            <template #icon><img src="/github.com_.png" alt="" width="20"></template>
+                        </n-button>
+                    </template>
+                </n-empty>
+            </n-tab-pane>
+        </n-tabs>
     </n-layout-sider>
 </template>
 
@@ -10,7 +37,7 @@
 import { ref } from 'vue'
 import { getRepoTree } from '@/api/data'
 import { extractEstNO2MenuOptions } from '@/utils'
-import { useMenuStore } from '@/stores/menu'
+import { MenuType, useMenuStore } from '@/stores/menu'
 import { storeToRefs } from 'pinia'
 
 defineOptions({
@@ -20,21 +47,21 @@ defineOptions({
 const message = useMessage()
 
 const activeKey = ref<string | null>(null)
-const { collapsed, totalMenuOptions, selectedMenuType, selectedMenuOption } = storeToRefs(useMenuStore())
-/** 当前选项数组 */
-const options = computed(() => {
-    return totalMenuOptions.value?.[selectedMenuType.value] ?? []
-})
+const { collapsed, dailyMenuOptions, hourlyMenuOptions, selectedMenuType, selectedMenuOption } = storeToRefs(useMenuStore())
 watchEffect(async () => {
-    const resp = await getRepoTree()
-    if (resp.status !== 200) {
+    try {
+        const resp = await getRepoTree()
+        const res = extractEstNO2MenuOptions(resp.data.tree)
+        dailyMenuOptions.value = res.daily
+        hourlyMenuOptions.value = res.hourly
+    } catch {
         message.error('获取GitHub目录失败，请稍后重试或联系作者')
-        return
     }
-    totalMenuOptions.value = extractEstNO2MenuOptions(resp.data.tree)
 })
 
-
+const openRepo = () => {
+    window.open('https://github.com/hfdy0935/no2_estimating_system', '_blank')
+}
 </script>
 
 <style scoped>

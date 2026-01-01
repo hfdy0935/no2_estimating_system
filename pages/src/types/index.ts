@@ -1,5 +1,3 @@
-import type { MenuOption } from "naive-ui"
-
 export interface GitHubTreeResp {
     sha: string
     url: string
@@ -14,7 +12,3 @@ export interface GitHubTreeResp {
     truncated: boolean
 }
 
-export interface TotalMenuOptions {
-    daily: MenuOption[],
-    hourly: MenuOption[]
-}

@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { Scene, RasterLayer, Source, type ILayer } from '@antv/l7';
+import { Scene, RasterLayer } from '@antv/l7';
 import { useMapStore } from '@/stores/map';
 import { Map as L7Map } from '@antv/l7-maps';
 import * as GeoTIFF from 'geotiff'
@@ -21,11 +21,10 @@ defineOptions({
     name: 'MapRender'
 })
 const mapEL = useTemplateRef('mapEl')
-const { scene, loading } = storeToRefs(useMapStore())
-const { selectedMenuOption } = storeToRefs(useMenuStore())
+const { scene, loading, basemapLayer, estNo2Layer } = storeToRefs(useMapStore())
+const { selectedMenuOption, selectedMenuType } = storeToRefs(useMenuStore())
 const message = useMessage()
-/** 当前显示的数据图层，来自tif */
-const curDataLayer = ref<ILayer>()
+
 
 
 /** 请求tif，解析，添加到scene */
@@ -35,40 +34,38 @@ const handleTif = async () => {
     if (!path) return
     try {
         loading.value = true
-        const response = await fetch(`${raw_base_url}/${path}`);
+        const response = await fetch(`${raw_base_url}/shared/estimate/${selectedMenuType.value}_tif/${path}`);
         const arrayBuffer = await response.arrayBuffer();
         const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
         const image = await tiff.getImage();
         const width = image.getWidth();
         const height = image.getHeight();
         const tiffData = (await image.readRasters())
-        // 移除旧的
-        if (curDataLayer.value)
-            scene.value?.removeLayer(curDataLayer.value)
-        // 添加新的
-        curDataLayer.value = new RasterLayer({ autoFit: true })
-        // 更新图层数据
-        curDataLayer.value?.setSource(new Source(tiffData[0], {
-            parser: {
-                type: 'raster',
-                width,
-                height,
-                extent: [ChinaRect.minlon, ChinaRect.minlat, ChinaRect.maxlon, ChinaRect.maxlat],
-            }
-        }))
-        // 更新图层样式
-        curDataLayer.value.style({
-            opacity: 1,
-            clampLow: false,
-            clampHigh: false,
-            domain: [0, 100],
-            rampColors: {
-                type: 'linear',
-                colors: ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a'].reverse(),
-                positions: [0, 25, 50, 75, 100],
-            },
-        })
-        scene.value?.addLayer(curDataLayer.value)
+        // 如果没有，就先创建
+        if (!estNo2Layer.value) {
+            estNo2Layer.value = new RasterLayer({ zIndex: 1, autoFit: true })
+            estNo2Layer.value.style({
+                opacity: 1,
+                clampLow: false,
+                clampHigh: false,
+                domain: [0, 100],
+                rampColors: {
+                    type: 'linear',
+                    colors: ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a'].reverse(),
+                    positions: [0, 20, 40, 60],
+                },
+            })
+            // 设置图层数据，默认只有一个波段
+            estNo2Layer.value.source(tiffData[0], {
+                parser: {
+                    type: 'raster',
+                    width,
+                    height,
+                    extent: [ChinaRect.minlon, ChinaRect.minlat, ChinaRect.maxlon, ChinaRect.maxlat],
+                }
+            })
+            scene.value?.addLayer(estNo2Layer.value)
+        } else estNo2Layer.value.setData(tiffData[0])
     } catch {
         message.error(`${path}加载失败，数据不存在或出现错误，请验证数据是否存在或重试或联系作者`, { keepAliveOnHover: true })
     } finally {
@@ -94,7 +91,9 @@ watchEffect(() => {
         logoVisible: false
     });
     scene.value.on('loaded', () => {
-        const layer = new RasterLayer();
+        const layer = new RasterLayer({
+            zIndex: 0
+        });
         layer.source(
             'https://webrd0{1-3}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
             {
@@ -106,8 +105,8 @@ watchEffect(() => {
                 },
             },
         );
+        basemapLayer.value = layer
         scene.value?.addLayer(layer);
-        handleTif()
     })
 })
 </script>

@@ -13,7 +13,9 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     NAlert: typeof import('naive-ui')['NAlert']
+    NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
+    NEmpty: typeof import('naive-ui')['NEmpty']
     NFlex: typeof import('naive-ui')['NFlex']
     NFloatButton: typeof import('naive-ui')['NFloatButton']
     NFloatButtonGroup: typeof import('naive-ui')['NFloatButtonGroup']
@@ -29,6 +31,8 @@ declare module 'vue' {
     NSpace: typeof import('naive-ui')['NSpace']
     NSpin: typeof import('naive-ui')['NSpin']
     NSwitch: typeof import('naive-ui')['NSwitch']
+    NTabPane: typeof import('naive-ui')['NTabPane']
+    NTabs: typeof import('naive-ui')['NTabs']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
@@ -37,7 +41,9 @@ declare module 'vue' {
 // For TSX support
 declare global {
   const NAlert: typeof import('naive-ui')['NAlert']
+  const NButton: typeof import('naive-ui')['NButton']
   const NCard: typeof import('naive-ui')['NCard']
+  const NEmpty: typeof import('naive-ui')['NEmpty']
   const NFlex: typeof import('naive-ui')['NFlex']
   const NFloatButton: typeof import('naive-ui')['NFloatButton']
   const NFloatButtonGroup: typeof import('naive-ui')['NFloatButtonGroup']
@@ -53,6 +59,8 @@ declare global {
   const NSpace: typeof import('naive-ui')['NSpace']
   const NSpin: typeof import('naive-ui')['NSpin']
   const NSwitch: typeof import('naive-ui')['NSwitch']
+  const NTabPane: typeof import('naive-ui')['NTabPane']
+  const NTabs: typeof import('naive-ui')['NTabs']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
 }
