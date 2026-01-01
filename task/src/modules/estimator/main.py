@@ -7,10 +7,10 @@ import pandas as pd
 from scipy.spatial import cKDTree  # type: ignore
 from src.utils.light import (
     time_util,
-    parquet_util,
     path_util,
     df_util,
     est_no2_util,
+    resample_util,
 )
 from src.constant import EST_MODEL_PATH
 
@@ -25,7 +25,7 @@ class Estimator:
         self.model.load_model(model_path)
         self.dt = dt
         self.ymd = time_util.dt2ymd(dt)
-        self.dem = pd.read_parquet(path_util.under_ds(Path("dem", "dem.parquet")))
+        self.dem = pd.read_parquet(path_util.ds / 'dem' / 'dem.parquet')
         # 自变量列名
         self.x_columns = [
             'u10',
@@ -47,6 +47,10 @@ class Estimator:
         self.y_column = "est_no2"
         # 保存的预测结果中的列名
         self.y_columns = ["lon", "lat", "time", self.y_column]
+        # 保存parquet的文件路径
+        self.parquet_savepath = (
+            path_util.est / 'pq' / f'{self.dt.year}' / f'{self.ymd}.parquet'
+        )
 
     def log(self, msg: str, dt_str: str = ''):
         logger.info(f'{dt_str or self.ymd} Estimate {msg}')
@@ -55,12 +59,10 @@ class Estimator:
         rec = pd.read_parquet(path_util.get_yymd_path_under_rec(['pq'], self.dt))
         era5 = df_util.read_era5(dt=self.dt)
         ndvi = pd.read_parquet(
-            path_util.under_ds(
-                Path("ndvi", f"{self.dt.month:02d}{self.dt.day:02d}.parquet")
-            )
+            path_util.ds / 'ndvi' / f'{self.dt.month:02d}{self.dt.day:02d}.parquet'
         )
         night_light = pd.read_parquet(
-            path_util.under_ds(Path("night_light", f"{self.dt.month:02d}.parquet"))
+            path_util.ds / 'night_light' / f'{self.dt.month:02d}.parquet'
         )
         # 拼接
         df = (
@@ -88,7 +90,7 @@ class Estimator:
         # 3.处理结果
         df = df[self.y_columns]
         df["time"] = raw_time
-        df_util.format_columns(df=df, columns=[self.y_column])
+        df_util.format_columns(df=df, columns=[self.y_column], n=3)
         return df
 
     def _n2np(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -115,6 +117,46 @@ class Estimator:
         df.time = df.time.astype(str)
         return df
 
+    def _handle_daily_and_stat(self, est: pd.DataFrame):
+        """处理并保存日军和统计结果"""
+        # 1. 估算结果每个点的的日均值 => 热力图
+        mean_est = cast(
+            pd.DataFrame,
+            est.groupby(['lon', 'lat'], as_index=False)[self.y_column].mean(),
+        )
+        savepath = path_util.est / 'daily_tif' / f'{self.dt.year}' / f'{self.ymd}.tif'
+        df_util.df2tif2save(df=mean_est, value_column=self.y_column, savepath=savepath)
+        # 2. 估算结果和cnemc匹配 => 散点图
+        cnemc = pd.read_parquet(
+            path_util.ds / 'cnemc' / f'{self.dt.year}' / f'{self.ymd}.parquet'
+        )
+        cnemc = resample_util.grid_divide_resample(df=cnemc, columns=['cnemc_no2'])
+        cnemc = cnemc.merge(right=est, on=['lon', 'lat', 'time'])[
+            [*self.y_columns, 'cnemc_no2']
+        ]
+        df_util.save_parquet(
+            df=cnemc,
+            path=path_util.est
+            / 'stat'
+            / f'{self.dt.year}'
+            / self.ymd
+            / 'match_cnemc_est.parquet',
+        )
+        # 3. est和cnemc的时均值，不止匹配的点 => 折线图
+        hourly_est = est.groupby(['time'], as_index=False)[self.y_column].mean()
+        hourly_cnemc = cnemc.groupby(['time'], as_index=False)['cnemc_no2'].mean()
+        hourly_df = hourly_est.merge(right=hourly_cnemc, on=['time'])
+        savepath = (
+            path_util.est
+            / 'stat'
+            / f'{self.dt.year}'
+            / self.ymd
+            / 'hourly_cnemc_est.parquet'
+        )
+        df_util.save_parquet(df=hourly_df, path=savepath)
+        # 4.
+        self.log('估算统计结果保存成功')
+
     def run(self):
         """估算
 
@@ -126,23 +168,22 @@ class Estimator:
         # 2. 负值替换成最接近的正值
         pred = self._n2np(pred)
         # 3. 保存parquet
-        savepath = path_util.get_yymd_path_under_est(['pq'], self.dt)
-        parquet_util.save(df=pred, path=savepath)
-        self.log(f"估算成功，parquet已保存至{path_util.relative2logpath(savepath)}")
-        # 4. 保存tif
+        df_util.save_parquet(df=pred, path=self.parquet_savepath)
+        self.log(
+            f"估算成功，parquet已保存至{path_util.relative2logpath(self.parquet_savepath)}"
+        )
+        # 4. 分小时保存tif
+        tif_savedir = path_util.est / 'hourly_tif' / f'{self.dt.year}' / self.ymd
         for time_str, group in pred.groupby('time'):
             time_str = cast(str, time_str)
-            savepath = Path(
-                path_util.under_est(Path('tif')),
-                time_str[:4],
-                time_str[:8],
-                f'{time_str}.tif',
-            )
+            # tif/y/ymd/ymdh.tif
+            savepath = tif_savedir / f'{time_str}.tif'
             df_util.df2tif2save(df=group, value_column=self.y_column, savepath=savepath)
-        self.log(f"估算成功，tif已保存至{savepath.parent}/")
+        self.log(f"估算成功，tif已保存至{tif_savedir}/")
         # 5. 数据记录
         est_no2_util.log(self.ymd)
-        # 6. TODO 匹配估算结果和CNEMC，保存，前端请求文件，画散点折线图
+        # 6. 保存统计结果
+        self._handle_daily_and_stat(est=pred)
 
 
 def estimate_no2(dt: datetime):

@@ -125,70 +125,8 @@ class PathUtil:
             Path(*pre, f"{dt.year}", f"{time_util.dt2ymd(dt)}.parquet")
         )
 
-    # ------------------------------------ est ----------------------------------- #F
-    def under_est(self, path: Path) -> Path:
-        """拼接在shared/estimate之后的路径
-
-        Args:
-            path (Path): shared/estimate之后的路径
-
-        Returns:
-            Path: 完整路径
-        """
-        return self.est / path
-
-    def get_yymd_path_under_est(self, pre: list[str | Path], dt: datetime) -> Path:
-        """拼接在`shared/estimate/xxx/xxx/`之后的路径，末尾满足`year/ymd.parquet`格式
-
-        Args:
-            pre (str): 前缀列表，每一级路径分开，即上面的xxx/xxx
-            dt (datetime): _description_
-
-        Returns:
-            Path: 完整路径
-        """
-        return self.under_est(
-            Path(*pre, f"{dt.year}", f"{time_util.dt2ymd(dt)}.parquet")
-        )
-
 
 path_util = PathUtil()
-
-
-class ParquetUtil:
-
-    def save(self, df: pd.DataFrame, path: Path) -> Self:
-        """写入
-
-        Args:
-            df (pd.DataFrame): dataframe
-            path (Path):
-
-        Returns:
-            _type_: _description_
-        """
-        path_util.ensure_path_exist(path)
-        df.to_parquet(path=path, index=False, compression="zstd")
-        return self
-
-    def append(self, df: pd.DataFrame, path: Path) -> Self:
-        """追加
-
-        Args:
-            df (pd.DataFrame): dataframe
-            path (Path):
-
-        Returns:
-            Self: _description_
-        """
-        if not path.exists():
-            self.save(df, path)
-        else:
-            write_parquet(filename=str(path), data=df, compression="zstd", append=True)
-        return self
-
-
-parquet_util = ParquetUtil()
 
 
 class DataFrameUtil:
@@ -366,6 +304,36 @@ class DataFrameUtil:
         )
         return pd.concat([era5_part1, era5_part2, era5_part3, era5_part4], axis=1)
 
+    def save_parquet(self, df: pd.DataFrame, path: Path) -> Self:
+        """写入
+
+        Args:
+            df (pd.DataFrame): dataframe
+            path (Path):
+
+        Returns:
+            _type_: _description_
+        """
+        path_util.ensure_path_exist(path)
+        df.to_parquet(path=path, index=False, compression="zstd")
+        return self
+
+    def append_parquet(self, df: pd.DataFrame, path: Path) -> Self:
+        """追加
+
+        Args:
+            df (pd.DataFrame): dataframe
+            path (Path):
+
+        Returns:
+            Self: _description_
+        """
+        if not path.exists():
+            self.save_parquet(df, path)
+        else:
+            write_parquet(filename=str(path), data=df, compression="zstd", append=True)
+        return self
+
 
 df_util = DataFrameUtil()
 
@@ -460,7 +428,7 @@ class ResampleUtil:
     def grid_divide_resample(
         self, df: pd.DataFrame, columns: list[str], resolution: float = RESOLUTION
     ):
-        """通过**网格划分**提高空间分辨率，适用于整个研究区数据不全的情况，插值完再过滤，**df中有时间的话要求一致
+        """网格划分，df中有时间的话要求一致
 
         Args:
             df (pd.DataFrame): _description_
@@ -470,34 +438,13 @@ class ResampleUtil:
         Returns:
             _type_: _description_
         """
-        # 1. 左下顶点 (lon向下取整, lat向下取整)
-        df_lb = df.copy()
-        df_lb["lon"] = (df_lb.lon // resolution) * resolution
-        df_lb["lat"] = (df_lb.lat // resolution) * resolution
-
-        # 2. 左上顶点 (lon向下取整, lat向上取整)
-        df_lt = df.copy()
-        df_lt["lon"] = (df_lt.lon // resolution) * resolution
-        df_lt["lat"] = np.ceil(df_lt.lat / resolution) * resolution
-
-        # 3. 右下顶点 (lon向上取整, lat向下取整)
-        df_rb = df.copy()
-        df_rb["lon"] = np.ceil(df_rb.lon / resolution) * resolution
-        df_rb["lat"] = (df_rb.lat // resolution) * resolution
-
-        # 4. 右上顶点 (lon向上取整, lat向上取整)
-        df_rt = df.copy()
-        df_rt["lon"] = np.ceil(df_rt.lon / resolution) * resolution
-        df_rt["lat"] = np.ceil(df_rt.lat / resolution) * resolution
-
-        # 合并4个顶点df
-        df_concat = pd.concat([df_lb, df_lt, df_rb, df_rt], ignore_index=True)
-        # 修正浮点精度
-        df_util.format_columns(df_concat, ["lon", "lat"])
+        df['lon'] = (df.lon / resolution).round() * resolution
+        df['lat'] = (df.lat / resolution).round() * resolution
+        df_util.format_columns(df, ["lon", "lat"])
         groupby_columns = (
             ["lon", "lat", "time"] if "time" in df.columns else ["lon", "lat"]
         )
-        grid_mean = df_concat.groupby(groupby_columns, as_index=False)[columns].mean()
+        grid_mean = df.groupby(groupby_columns, as_index=False)[columns].mean()
         return grid_mean
 
 
@@ -632,6 +579,6 @@ class DataRecordUtil:
 
 
 # 近地面no2估算结果日志，包含ymd日期数组
-est_no2_util = DataRecordUtil(path_util.under_est(Path('surface_no2_record.json')))
+est_no2_util = DataRecordUtil(path_util.est / 'surface_no2_record.json')
 # 每次运行都会记录的日志
 shared_data_util = DataRecordUtil(Path(SHARED_DIR, 'data_record.json'))

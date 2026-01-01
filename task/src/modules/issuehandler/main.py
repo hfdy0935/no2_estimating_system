@@ -86,11 +86,8 @@ class Emailtool:
         zf = zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED)
         for dt in dts:
             time_str = time_util.dt2ymdh(dt)
-            path = Path(
-                path_util.under_est(Path('tif')),
-                time_str[:4],
-                time_str[:8],
-                f'{time_str}.tif',
+            path = (
+                path_util.est / 'tif' / time_str[:4] / time_str[:8] / f'{time_str}.tif'
             )
             if not path.exists():
                 continue

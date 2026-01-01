@@ -2,15 +2,14 @@
     <n-layout-sider bordered collapse-mode="width" :collapsed-width="96" :width="300" :collapsed show-trigger
         style="max-height:100vh" :native-scrollbar="false" @collapse="collapsed = true" @expand="collapsed = false">
         <n-menu v-model:value="activeKey" :collapsed :collapsed-width="96" :collapsed-icon-size="22" :indent="14"
-            :options="menuOptions" @update-value="(value, option) => mapStore.selectedMenuOption = option" />
+            :options @update-value="(value, option) => selectedMenuOption = option" />
     </n-layout-sider>
 </template>
 
 <script setup lang="ts">
-import type { MenuOption } from 'naive-ui'
 import { ref } from 'vue'
 import { getRepoTree } from '@/api/data'
-import { flatTree2MenuOption } from '@/utils'
+import { extractEstNO2MenuOptions } from '@/utils'
 import { useMenuStore } from '@/stores/menu'
 import { storeToRefs } from 'pinia'
 
@@ -21,16 +20,18 @@ defineOptions({
 const message = useMessage()
 
 const activeKey = ref<string | null>(null)
-const menuOptions = ref<MenuOption[]>([])
-const { collapsed } = storeToRefs(useMenuStore())
-const mapStore = useMenuStore()
+const { collapsed, totalMenuOptions, selectedMenuType, selectedMenuOption } = storeToRefs(useMenuStore())
+/** 当前选项数组 */
+const options = computed(() => {
+    return totalMenuOptions.value?.[selectedMenuType.value] ?? []
+})
 watchEffect(async () => {
     const resp = await getRepoTree()
     if (resp.status !== 200) {
         message.error('获取GitHub目录失败，请稍后重试或联系作者')
         return
     }
-    menuOptions.value = flatTree2MenuOption(resp.data.tree)
+    totalMenuOptions.value = extractEstNO2MenuOptions(resp.data.tree)
 })
 
 

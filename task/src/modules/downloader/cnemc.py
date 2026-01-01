@@ -8,7 +8,6 @@ import pandas as pd
 from src.types import Maybe
 from src.utils.light import (
     time_util,
-    parquet_util,
     path_util,
     df_util,
     resample_util,
@@ -71,8 +70,6 @@ class CNEMCDownloader:
         )
         df = df[df[self.no2_column].notna()]
         df = df[df[self.no2_column] > 0]
-        # 划分网格，只看结果不训练，不用划分
-        # df = resample_util.grid_divide_resample(df=df, columns=[self.no2_column])
         (
             df_util.format_columns(
                 df=df, columns=[self.no2_column], n=3
@@ -153,7 +150,7 @@ class CNEMCDownloader:
             savepath = path_util.get_yymd_path_under_ds(
                 ['cnemc'], dt=time_util.ymd2dt(ymd)
             )
-            parquet_util.append(df=group, path=savepath)
+            df_util.append_parquet(df=group, path=savepath)
             self.log(
                 ymd, f'下载成功，utc已保存至{path_util.relative2logpath(savepath)}'
             )

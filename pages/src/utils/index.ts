@@ -1,5 +1,5 @@
 import { raw_base_url } from "@/constants";
-import type { GitHubTreeResp } from "@/types";
+import type { GitHubTreeResp, TotalMenuOptions } from "@/types";
 import {
     FolderOutline, ImageOutline
 } from '@vicons/ionicons5'
@@ -9,57 +9,11 @@ import { NEllipsis, NIcon, type MenuOption } from 'naive-ui'
 import * as _ from 'lodash-es'
 
 export const isTopLevel = (path: string) => !path.includes('/')
-export const isParquet = (path: string) => path.endsWith('.parquet')
+export const getParentDir = (path: string) => path.split('/').slice(0, -1).join('/')
 export function renderIcon(icon: Component) {
     return () => h(NIcon, null, { default: () => h(icon) })
 }
-export const isFolder = (item: GitHubTreeResp['tree'][number]) => item.type === 'tree'
-
-/**
- * GitHub扁平目录树转为层级，返回shared目录下的数据
- * @param tree 
- * @returns 
- */
-export const flatTree2MenuOption = (tree: GitHubTreeResp['tree']): MenuOption[] => {
-    const map = new Map<string, MenuOption>()
-    // 文件夹
-    const genNode = (path: string, children: MenuOption[] = []) => {
-        return {
-            key: path,
-            label: () => h(NEllipsis, null, { default: () => path.includes('/') ? path.split('/').slice(-1)[0] : path }),
-            icon: renderIcon(FolderOutline),
-            children
-        }
-    }
-    const estimateTifNode = genNode('shared/estimate/tif')
-    const reconstructTifNode = genNode('shared/reconstruct/tif')
-    map.set('shared/estimate/tif', estimateTifNode)
-    map.set('shared/reconstruct/tif', reconstructTifNode)
-    const estimateNode = genNode('shared/estimate', [estimateTifNode])
-    const reconstructNode = genNode('shared/reconstruct', [reconstructTifNode])
-    map.set('shared/estimate', estimateNode)
-    map.set('shared/reconstruct', reconstructNode)
-    map.set('shared', genNode('shared', [estimateNode, reconstructNode]))
-    // y/ymd/xxx.tif
-    const estimateItems = tree.filter(el => el.path.startsWith('shared/estimate/tif/'))
-    const reconstructItems = tree.filter(el => el.path.startsWith('shared/reconstruct/tif/'))
-    for (const item of [...estimateItems, ...reconstructItems]) {
-        const node = {
-            key: item.path,
-            label: () => h(NEllipsis, null, { default: () => isTopLevel('/') ? item.path : item.path.split('/').slice(-1)[0] }),
-            icon: isFolder(item) ? renderIcon(FolderOutline) : renderIcon(ImageOutline),
-            children: isFolder(item) ? [] : undefined,
-            extra: isFolder(item) ? undefined : `  ${((item.size ?? 0) / 1024 / 1024).toFixed(2)}MB`
-        }
-        map.set(item.path, node)
-        const parent = map.get(item.path.split('/').slice(0, -1).join('/'))
-        if (parent) {
-            parent.children?.push(node)
-        }
-    }
-    return map.get('shared')?.children ?? []
-}
-
+export const isDir = (item: GitHubTreeResp['tree'][number]) => item.type === 'tree'
 
 /**
  * 从路径提取文件名
@@ -69,6 +23,72 @@ export const flatTree2MenuOption = (tree: GitHubTreeResp['tree']): MenuOption[] 
 export const extractFilename = (path: string): string => {
     return isTopLevel(path) ? path : path.split('/').slice(-1)[0]!
 }
+
+
+/**
+ * githubTreeIytem构建menuOption
+ * @param el 
+ * @returns 
+ */
+const githubTreeItem2MenuOption = (el: GitHubTreeResp['tree'][number]): MenuOption => {
+    return {
+        key: el.path,
+        label: () => h(NEllipsis, null, { default: () => extractFilename(el.path) }),
+        icon: isDir(el) ? renderIcon(FolderOutline) : renderIcon(ImageOutline),
+        children: isDir(el) ? [] : undefined
+    }
+}
+
+
+/**
+ * 从github目录树中提取每天和每小时的est_no2，拼装成MenuOption[]
+ * @param tree 
+ */
+export const extractEstNO2MenuOptions = (tree: GitHubTreeResp['tree']): TotalMenuOptions => {
+    // 目录比它里面的子目录/子文件早出现
+    // 用于快速查找父目录
+    const map = new Map<string, MenuOption>()
+    // 1. hourly
+    console.log(tree);
+
+    const hourlyItems = tree.filter(el => el.path.startsWith('shared/estimate/hourly_tif/')).map(el => {
+        el.path = el.path.replace('shared/estimate/hourly_tif/', '')
+        return el
+    })
+    const hourlyMenuOptions: MenuOption[] = []
+    for (const el of hourlyItems) {
+        const item = githubTreeItem2MenuOption(el)
+        const parent = map.get(getParentDir(el.path))
+        if (parent) {
+            parent.children?.push(item)
+        } else {
+            hourlyMenuOptions.push(item)
+        }
+        if (isDir(el)) map.set(el.path, item)
+    }
+    // 2. daily
+    map.clear()
+    const dailyItems = tree.filter(el => el.path.startsWith('shared/estimate/daily_tif/')).map(el => {
+        el.path = el.path.replace('shared/estimate/daily_tif/', '')
+        return el
+    })
+    const dailyMenuOptions: MenuOption[] = []
+    for (const el of dailyItems) {
+        const item = githubTreeItem2MenuOption(el)
+        const parent = map.get(getParentDir(el.path))
+        if (parent) {
+            parent.children?.push(item)
+        } else {
+            hourlyMenuOptions.push(item)
+        }
+        if (isDir(el)) map.set(el.path, item)
+    }
+    return {
+        hourly: hourlyMenuOptions,
+        daily: dailyMenuOptions
+    }
+}
+
 
 
 /** 请求并解析parquet */

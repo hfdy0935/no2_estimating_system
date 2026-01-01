@@ -5,7 +5,7 @@ import geemap
 import numpy as np
 import pandas as pd
 from src.modules.downloader.basic import GEEDownloader
-from src.utils.light import time_util, parquet_util, path_util, df_util, resample_util
+from src.utils.light import time_util, path_util, df_util, resample_util
 from src.utils.heavy import filter_util
 from src.types import Maybe
 
@@ -155,10 +155,10 @@ class ERA5Downloader(GEEDownloader):
         # 4. 保存
         df = pd.concat(df_ls)
         # 分开存
-        parquet_util.save(df[self.era5_columns_part1], savepath1)
-        parquet_util.save(df[self.era5_columns_part2], savepath2)
-        parquet_util.save(df[self.era5_columns_part3], savepath3)
-        parquet_util.save(df[self.era5_columns_part4], savepath4)
+        df_util.save_parquet(df[self.era5_columns_part1], savepath1)
+        df_util.save_parquet(df[self.era5_columns_part2], savepath2)
+        df_util.save_parquet(df[self.era5_columns_part3], savepath3)
+        df_util.save_parquet(df[self.era5_columns_part4], savepath4)
         self.log(
             f'下载成功，已保存至{path_util.relative2logpath(savepath1)}、{path_util.relative2logpath(savepath2)}、{path_util.relative2logpath(savepath3)}、{path_util.relative2logpath(savepath4)}'
         )

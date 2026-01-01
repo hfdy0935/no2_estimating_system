@@ -4,7 +4,7 @@ import ee
 import geemap
 import numpy as np
 import pandas as pd
-from src.utils.light import time_util, parquet_util, path_util, df_util, resample_util
+from src.utils.light import time_util, path_util, df_util, resample_util
 from src.utils.heavy import filter_util
 from src.modules.downloader.basic import GEEDownloader
 from src.types import Maybe
@@ -121,7 +121,7 @@ class GEOSCFDownloader(GEEDownloader):
             return
         # 4. 保存
         df = pd.concat(df_ls)
-        parquet_util.save(df, savepath)
+        df_util.save_parquet(df, savepath)
         self.log(f'下载成功，已保存至{path_util.relative2logpath(savepath)}')
 
 

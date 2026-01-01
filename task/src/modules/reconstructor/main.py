@@ -2,7 +2,6 @@ from datetime import datetime
 import json
 import logging
 from pathlib import Path
-from typing import cast
 import numpy as np
 from catboost import CatBoostRegressor
 import pandas as pd
@@ -10,7 +9,6 @@ from scipy.spatial import cKDTree  # type: ignore
 from src.utils.light import (
     fill_with_residual_softnorm,
     time_util,
-    parquet_util,
     path_util,
     df_util,
 )
@@ -27,7 +25,7 @@ class Reconstructor:
         self.model.load_model(model_path)
         self.dt = dt
         self.ymd = time_util.dt2ymd(dt)
-        self.dem = pd.read_parquet(path_util.under_ds(Path("dem", "dem.parquet")))
+        self.dem = pd.read_parquet(path_util.ds / 'dem' / 'dem.parquet')
         # 自变量列名
         self.x_columns = [
             "u10",
@@ -57,12 +55,10 @@ class Reconstructor:
         geoscf = pd.read_parquet(path_util.get_yymd_path_under_ds(['geoscf'], self.dt))
         era5 = df_util.read_era5(dt=self.dt)
         ndvi = pd.read_parquet(
-            path_util.under_ds(
-                Path("ndvi", f"{self.dt.month:02d}{self.dt.day:02d}.parquet")
-            )
+            path_util.ds / 'ndvi' / f'{self.dt.month:02d}{self.dt.day:02d}.parquet'
         )
         night_light = pd.read_parquet(
-            path_util.under_ds(Path("night_light", f"{self.dt.month:02d}.parquet"))
+            path_util.ds / 'night_light' / f'{self.dt.month:02d}.parquet'
         )
         # 拼接
         df = (
@@ -127,7 +123,7 @@ class Reconstructor:
         gems_path = path_util.get_yymd_path_under_ds(['gems'], self.dt)
         # gems存在才校正
         if gems_path.exists():
-            gems = pd.read_parquet(path_util.get_yymd_path_under_ds(['gems'], self.dt))
+            gems = pd.read_parquet(gems_path)
             # 2. 对每个小时的残差计算均值
             fill_value = -9999  # 填充值
             r_df_ls: list[pd.DataFrame] = []  # 每个小时每个点的残差df列表
@@ -167,29 +163,11 @@ class Reconstructor:
             pred.drop(columns=["r"], inplace=True)
             # 5. 负值替换成最接近的正值
             pred = self._n2np(pred)
-        else:
-            # 保存未校正信息
-            record: list[str] = json.load(
-                open(path_util.under_rec(Path('lack_gems.json')))
-            )
-            record.append(self.ymd)
-            json.dump(record, open(path_util.under_rec(Path('lack_gems.json'))))
         df_util.format_columns(df=pred, columns=[self.y_column], n=3)
         # 6. 保存parquet
         savepath = path_util.get_yymd_path_under_rec(['pq'], self.dt)
-        parquet_util.save(df=pred, path=savepath)
+        df_util.save_parquet(df=pred, path=savepath)
         self.log(f"重建成功，parquet已保存至{path_util.relative2logpath(savepath)}")
-        # 7. 保存tif
-        for time_str, group in pred.groupby('time'):
-            time_str = cast(str, time_str)
-            savepath = Path(
-                path_util.under_rec(Path('tif')),
-                time_str[:4],
-                time_str[:8],
-                f'{time_str}.tif',
-            )
-            df_util.df2tif2save(df=group, value_column=self.y_column, savepath=savepath)
-        self.log(f"重建成功，tif已保存至{savepath.parent}/")
 
 
 def reconstruct_no2(dt: datetime):

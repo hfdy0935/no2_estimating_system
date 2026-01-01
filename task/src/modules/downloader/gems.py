@@ -9,7 +9,7 @@ import requests
 from netCDF4 import Dataset
 from src.config import SecretConfig
 from src.types import Maybe
-from src.utils.light import time_util, resample_util, df_util, path_util, parquet_util
+from src.utils.light import time_util, resample_util, df_util, path_util
 from src.utils.heavy import filter_util
 
 
@@ -258,7 +258,7 @@ class GEMSDownloader:
             return
         # 4. 保存
         df = pd.concat(df_ls)
-        parquet_util.save(df=df, path=savepath)
+        df_util.save_parquet(df=df, path=savepath)
         self.log(f'下载成功，已保存至{path_util.relative2logpath(savepath)}')
 
 
