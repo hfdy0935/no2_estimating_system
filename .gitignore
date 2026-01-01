@@ -13,3 +13,4 @@ wheels/
 
 # 本地数据
 *.ipynb
+**/hourly_tif
