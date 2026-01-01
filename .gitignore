@@ -13,5 +13,5 @@ wheels/
 
 # 本地数据
 *.ipynb
-**/hourly_tif/2023/2023101*
+**/hourly_tif/2023/2023100*
 **/hourly_tif/2023/2023102*
