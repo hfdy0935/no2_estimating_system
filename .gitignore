@@ -12,4 +12,6 @@ wheels/
 
 
 # 本地数据
+**/part1/
+**/part2/
 *.ipynb
