@@ -1,6 +1,7 @@
 <template>
     <n-spin :show="loading.length > 0" description="加载中...">
         <div class="container">
+            <map-legend></map-legend>
             <map-tools></map-tools>
             <div id="map" ref="mapEl"></div>
         </div>
@@ -9,13 +10,15 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { Scene, RasterLayer } from '@antv/l7';
+import { Scene, RasterLayer, Zoom, Scale } from '@antv/l7';
 import { useMapStore } from '@/stores/map';
 import { Map as L7Map } from '@antv/l7-maps';
 import * as GeoTIFF from 'geotiff'
 import { useMenuStore } from '@/stores/menu';
 import { ChinaRect, raw_base_url } from '@/constants';
 import MapTools from './map-tools/index.vue';
+import MapLegend from './map-legend.vue';
+
 
 defineOptions({
     name: 'MapRender'
@@ -24,7 +27,6 @@ const mapEL = useTemplateRef('mapEl')
 const { scene, loading, basemapLayer, estNo2Layer } = storeToRefs(useMapStore())
 const { selectedMenuOption, selectedMenuType } = storeToRefs(useMenuStore())
 const message = useMessage()
-
 
 /** 请求tif，解析，添加到scene */
 const handleTif = async () => {
@@ -44,14 +46,19 @@ const handleTif = async () => {
         if (!estNo2Layer.value) {
             estNo2Layer.value = new RasterLayer({ zIndex: 1, autoFit: true })
             estNo2Layer.value.style({
-                opacity: 1,
-                clampLow: false,
-                clampHigh: false,
-                domain: [0, 100],
+                domain: [0, 90],
                 rampColors: {
                     type: 'linear',
-                    colors: ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a'].reverse(),
-                    positions: [0, 20, 40, 60],
+                    colors: [
+                        '#6D9F00',
+                        '#92B800',
+                        '#C8DB00',
+                        '#FFFC00',
+                        '#FFB000',
+                        '#FF6200',
+                        '#FF2200',
+                    ],
+                    positions: [0, 15, 30, 45, 60, 75, 90],
                 },
             })
             // 设置图层数据，默认只有一个波段
@@ -105,7 +112,14 @@ watchEffect(() => {
             },
         );
         basemapLayer.value = layer
-        scene.value?.addLayer(layer);
+        if (!scene.value) return
+        scene.value.addLayer(layer)
+        scene.value.addControl(new Scale({
+            position: 'leftbottom'
+        }))
+        scene.value.addControl(new Zoom({
+            position: 'leftcenter',
+        }))
     })
 })
 </script>

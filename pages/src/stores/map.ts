@@ -1,5 +1,5 @@
 import { defineStore, storeToRefs } from 'pinia'
-import { HeatmapLayer, type PolygonLayer, type RasterLayer, type Scene } from '@antv/l7'
+import { PointLayer, type PolygonLayer, type RasterLayer, type Scene } from '@antv/l7'
 import { MenuType, useMenuStore } from './menu'
 import { fetchAndParseParquet } from '@/utils'
 import type { MessageApiInjection } from 'naive-ui/es/message/src/MessageProvider'
@@ -15,7 +15,7 @@ export const useMapStore = defineStore('map', () => {
     /** 显示省边界的图层 */
     const provinceLayer = shallowRef<PolygonLayer | null>()
     /** 显示cnemc_no2 的图层 */
-    const cnemcLayer = shallowRef<HeatmapLayer | null>()
+    const cnemcLayer = shallowRef<PointLayer | null>()
     /** cnemc数据 */
     const cnemcData = shallowRef<Record<string, object[]>>({})
     /** 当前要展示的cnemc数据 */
@@ -45,25 +45,27 @@ export const useMapStore = defineStore('map', () => {
     }
     const handleCnemcLayer = async () => {
         if (!cnemcLayer.value) {
-            //  TODO需要看一下单位怎么统一
-            cnemcLayer.value = new HeatmapLayer({ zIndex: 3 }).shape('circle')
-            cnemcLayer.value.source(showedCnemcData.value, {
-                parser: {
-                    type: 'json',
-                    x: 'lon',
-                    y: 'lat'
-                },
-                transforms: [
-                    {
-                        type: 'grid',
-                        size: 20000,
-                        field: 'cnemc_no2'
+            cnemcLayer.value = new PointLayer({ zIndex: 3 })
+            cnemcLayer.value.shape('circle')
+                .source(showedCnemcData.value, {
+                    parser: {
+                        type: 'json',
+                        x: 'lon',
+                        y: 'lat'
                     }
-                ]
-            }).color(
-                'count',
-                ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a'].reverse()
-            )
+                }).color(
+                    'cnemc_no2',
+                    ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a'].reverse()
+                ).style({
+                    stroke: '#000',
+                    strokeWidth: 0.5,
+                    domain: [0, 60],
+                    rampColors: {
+                        type: 'linear',
+                        colors: ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a'].reverse(),
+                        positions: [0, 20, 40, 60],
+                    },
+                }).size(3)
             scene.value?.addLayer(cnemcLayer.value)
         } else cnemcLayer.value.setData(showedCnemcData.value)
     }

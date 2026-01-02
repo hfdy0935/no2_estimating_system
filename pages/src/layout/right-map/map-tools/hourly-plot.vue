@@ -48,7 +48,7 @@ watch([container, hourlyData], ([container, data]) => {
             line: true,
             title: 'NO2 (ug/m^3)',
         }).scale('y', {
-            domain: [0, 40]
+            domain: [0, 60]
         })
     chart.value.line().encode('shape', 'smooth').tooltip({
         title: d => `${d.hour}h`,

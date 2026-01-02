@@ -70,12 +70,12 @@ watch([container, matchedData], ([container, data]) => {
         width: 400,
         height: 400
     })
-    if (matchedData.value.length > 3000) {
-        message.warning('点数量>3000，为保证用户体验，随机取3000个点展示，不影响精度指标')
+    if (matchedData.value.length > 6000) {
+        message.warning('点数量>6000，为保证用户体验，随机取6000个点展示，不影响精度指标')
     }
     chart.value
         .point()
-        .data(_.sampleSize(matchedData.value, 3000))
+        .data(_.sampleSize(matchedData.value, 6000))
         .encode('x', 'cnemc_no2')
         .encode('y', 'est_no2')
         .encode('size', 1)
