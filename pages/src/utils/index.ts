@@ -1,5 +1,5 @@
 import { raw_base_url } from "@/constants";
-import type { GitHubTreeResp } from "@/types";
+import type { GitHubTreeResp, Metric } from "@/types";
 import {
     FolderOutline, ImageOutline
 } from '@vicons/ionicons5'
@@ -103,3 +103,49 @@ export const fetchAndParseParquet = async (path: string) => {
     const groupedObj = _.groupBy(sortedData, 'time')
     return groupedObj
 }
+
+
+/**
+ * 把ymd[h]转为y年m月d日[h时]
+ * @param dt 
+ * @returns 
+ */
+export const formatDatetimeStr = (dt: string) => {
+    if (dt.length < 8) return ''
+    const ymd = dt.slice(0, 4) + '-' + dt.slice(4, 6) + '-' + dt.slice(6, 8) + ' '
+    if (dt.length === 8) {
+        return ymd
+    }
+    return ymd + dt.slice(8, 10) + ' '
+}
+
+
+/**
+ * 计算精度指标
+ * @param yTrue 
+ * @param yPred 
+ * @returns 
+ */
+export const calculateMetrics = (yTrue: number[], yPred: number[]): Metric => {
+    const n = yTrue.length;
+    let sumAbs = 0; // 绝对误差和（用于MAE）
+    let sumSq = 0;  // 平方误差和（用于RMSE）
+    const yMean = yTrue.reduce((a, b) => a + b, 0) / n; // 真实值的平均值
+    let ssTotal = 0; // 总平方和（用于R²）
+    let ssResid = 0; // 残差平方和（用于R²）
+
+    for (let i = 0; i < n; i++) {
+        const error = yTrue[i]! - yPred[i]!;
+        sumAbs += Math.abs(error);
+        sumSq += error ** 2;
+        ssTotal += (yTrue[i]! - yMean) ** 2;
+        ssResid += error ** 2;
+    }
+
+    return {
+        N: n,
+        MAE: (sumAbs / n).toFixed(2),
+        RMSE: (Math.sqrt(sumSq / n)).toFixed(2),
+        R2: (1 - (ssResid / ssTotal)).toFixed(2)
+    };
+};

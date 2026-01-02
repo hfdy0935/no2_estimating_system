@@ -28,87 +28,34 @@
 </template>
 
 <script setup lang="ts">
-import { MenuType, useMenuStore } from '@/stores/menu';
+import { useMenuStore } from '@/stores/menu';
 import { storeToRefs } from 'pinia';
-import { HeatmapLayer, PolygonLayer } from '@antv/l7';
+import { PolygonLayer } from '@antv/l7';
 import { useMapStore } from '@/stores/map';
-import { fetchAndParseParquet } from '@/utils';
 
 const message = useMessage()
 
-const { selectedMenuOption, selectedMenuType, selectedFilename } = storeToRefs(useMenuStore())
-const { scene, loading, provinceLayer, cnemcLayer, cnemcData } = storeToRefs(useMapStore())
-
+const { selectedMenuOption } = storeToRefs(useMenuStore())
+const { scene, loading, provinceLayer, cnemcLayer } = storeToRefs(useMapStore())
+const { handleCnemcLayer, fetchCnemc } = useMapStore()
 // region显示cnemc
 const showCnemc = ref(false)
 
-const handleCnemc = async () => {
-    const year = selectedFilename.value.slice(0, 4)
-    const ymd = selectedFilename.value.slice(0, 8)
-    const maybeYmdh = selectedFilename.value.slice(0, 10)
-    const cnemcPath = `shared/data_source/cnemc/${year}/${ymd}.parquet`
-    try {
-        loading.value = true
-        const _data = await fetchAndParseParquet(cnemcPath)
-        cnemcData.value = _data
-        // 根据选中的是天还是小时
-        const data = selectedMenuType.value === MenuType.DAILY ? [...Object.values(_data)] : _data[maybeYmdh]
-        if (!cnemcLayer.value) {
-            //  TODO需要看一下单位怎么统一
-            cnemcLayer.value = new HeatmapLayer({ zIndex: 3 }).shape('circle')
-            cnemcLayer.value.source(data, {
-                parser: {
-                    type: 'json',
-                    x: 'lon',
-                    y: 'lat'
-                },
-                transforms: [
-                    {
-                        type: 'grid',
-                        size: 20000,
-                        field: 'cnemc_no2'
-                    }
-                ]
-            }).color(
-                'count',
-                ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a'].reverse()
-            )
-            scene.value?.addLayer(cnemcLayer.value)
-        } else cnemcLayer.value.setData(data)
-        console.log(data)
-    } catch {
-        message.error(`${cnemcPath}加载失败，数据不存在或出现错误，请验证数据是否存在或重试或联系作者`, { keepAliveOnHover: true })
-    } finally {
-        loading.value = false
-    }
-}
-
-const shouldReFetchCnemc = ref(false)
 /** 监听切换数据 */
 watch([selectedMenuOption], () => {
-    // 如果不显示cnemc，则打开时需要重新请求否则和tif一起请求了
-    if (!showCnemc.value) {
-        shouldReFetchCnemc.value = true
-        return
+    fetchCnemc(message)
+    if (showCnemc.value) {
+        handleCnemcLayer()
     }
-    handleCnemc()
-}, {
-    immediate: true
 })
 
 /** 监听cnemc是否显示开关 */
 watch(showCnemc, val => {
     if (val) {
-        if (!cnemcLayer.value || shouldReFetchCnemc.value) {
-            handleCnemc()
-            shouldReFetchCnemc.value = false
-        } else {
-            cnemcLayer.value?.show()
-        }
+        handleCnemcLayer()
+        cnemcLayer.value?.show()
     }
     else cnemcLayer.value?.hide()
-}, {
-    immediate: true
 })
 
 // endregion

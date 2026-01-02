@@ -2,7 +2,7 @@
     <n-layout-sider bordered collapse-mode="width" :collapsed-width="0" :width="240" :collapsed show-trigger
         style="max-height:100vh;padding: 10px;" :native-scrollbar="false" @collapse="collapsed = true"
         @expand="collapsed = false">
-        <n-tabs type="segment" animated v-model:value="selectedMenuType">
+        <n-tabs type="segment" animated>
             <n-tab-pane :name="MenuType.DAILY" tab="每天">
                 <n-menu v-if="dailyMenuOptions.length" v-model:value="activeKey" :collapsed :collapsed-width="96"
                     :collapsed-icon-size="22" :indent="14" :options="dailyMenuOptions"
@@ -47,7 +47,7 @@ defineOptions({
 const message = useMessage()
 
 const activeKey = ref<string | null>(null)
-const { collapsed, dailyMenuOptions, hourlyMenuOptions, selectedMenuType, selectedMenuOption } = storeToRefs(useMenuStore())
+const { collapsed, dailyMenuOptions, hourlyMenuOptions, selectedMenuOption } = storeToRefs(useMenuStore())
 watchEffect(async () => {
     try {
         const resp = await getRepoTree()

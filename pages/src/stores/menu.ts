@@ -15,7 +15,7 @@ export const useMenuStore = defineStore('menu', () => {
   /** 每小时选项数组 */
   const hourlyMenuOptions = ref<MenuOption[]>([])
   /** 当前选项类型 */
-  const selectedMenuType = ref<MenuType>(MenuType.DAILY)
+  const selectedMenuType = computed<MenuType>(() => selectedFilename.value.split('.')[0]?.length === 8 ? MenuType.DAILY : MenuType.HOURLUY)
   /** 选中的选项 */
   const selectedMenuOption = ref<MenuOption>()
   /** 选中的文件名，文件名需要重新计算，因为label可能是渲染函数 */

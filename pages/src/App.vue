@@ -7,7 +7,9 @@ import MapLayout from '@/layout/index.vue'
 
 <template>
   <n-message-provider>
-    <map-layout></map-layout>
+    <n-config-provider>
+      <map-layout></map-layout>
+    </n-config-provider>
   </n-message-provider>
 </template>
 

@@ -12,3 +12,11 @@ export interface GitHubTreeResp {
     truncated: boolean
 }
 
+
+
+export interface Metric {
+    N: number
+    R2: string,
+    MAE: string,
+    RMSE: string
+}
