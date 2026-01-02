@@ -87,7 +87,11 @@ class Emailtool:
         for dt in dts:
             time_str = time_util.dt2ymdh(dt)
             path = (
-                path_util.est / 'tif' / time_str[:4] / time_str[:8] / f'{time_str}.tif'
+                path_util.est
+                / 'hourly_tif'
+                / time_str[:4]
+                / time_str[:8]
+                / f'{time_str}.tif'
             )
             if not path.exists():
                 continue
