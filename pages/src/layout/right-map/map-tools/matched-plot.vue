@@ -1,9 +1,11 @@
 <template>
-    <n-empty v-if="Object.keys(data).length === 0" :show-icon="false" description="暂无数据"></n-empty>
-    <template v-else>
-        <n-data-table :columns :data="[metrics]" :bordered="false" />
-        <div ref="container"></div>
-    </template>
+    <div class="box">
+        <n-empty v-if="Object.keys(data).length === 0" :show-icon="false" description="暂无数据"></n-empty>
+        <template v-else>
+            <n-data-table :columns :data="[metrics]" :bordered="false" />
+            <div ref="container"></div>
+        </template>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -65,8 +67,8 @@ watch([container, matchedData], ([container, data]) => {
     chart.value = new Chart({
         container,
         autoFit: true,
-        width: 320,
-        height: 320
+        width: 400,
+        height: 400
     })
     if (matchedData.value.length > 3000) {
         message.warning('点数量>3000，为保证用户体验，随机取3000个点展示，不影响精度指标')
@@ -116,3 +118,14 @@ onUnmounted(() => {
 })
 
 </script>
+
+
+<style scoped>
+.box {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+</style>

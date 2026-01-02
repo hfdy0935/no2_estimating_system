@@ -1,6 +1,8 @@
 <template>
-    <n-empty v-if="Object.keys(data).length === 0" :show-icon="false" description="暂无数据"></n-empty>
-    <div v-else ref="container"></div>
+    <div class="box">
+        <n-empty v-if="Object.keys(data).length === 0" :show-icon="false" description="暂无数据"></n-empty>
+        <div v-else ref="container"></div>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -30,8 +32,8 @@ watch([container, hourlyData], ([container, data]) => {
     chart.value = new Chart({
         container,
         autoFit: true,
-        width: 420,
-        height: 240
+        width: 560,
+        height: 300
     })
     chart.value
         .data(hourlyData.value)
@@ -61,3 +63,12 @@ watch([container, hourlyData], ([container, data]) => {
     chart.value.render()
 })
 </script>
+<style scoped>
+.box {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+</style>

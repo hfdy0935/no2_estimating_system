@@ -118,7 +118,7 @@ class Estimator:
         return df
 
     def _handle_daily_and_stat(self, est: pd.DataFrame):
-        """处理并保存日军和统计结果"""
+        """处理并保存日均和统计结果"""
         # 1. 估算结果每个点的的日均值 => 热力图
         mean_est = cast(
             pd.DataFrame,
@@ -131,11 +131,11 @@ class Estimator:
             path_util.ds / 'cnemc' / f'{self.dt.year}' / f'{self.ymd}.parquet'
         )
         cnemc = resample_util.grid_divide_resample(df=cnemc, columns=['cnemc_no2'])
-        cnemc = cnemc.merge(right=est, on=['lon', 'lat', 'time'])[
+        merged = cnemc.merge(right=est, on=['lon', 'lat', 'time'])[
             [*self.y_columns, 'beijing_time', 'cnemc_no2']
         ]
         df_util.save_parquet(
-            df=cnemc,
+            df=merged,
             path=path_util.est
             / 'stat'
             / f'{self.dt.year}'
@@ -143,8 +143,8 @@ class Estimator:
             / 'match_cnemc_est.parquet',
         )
         # 3. est和cnemc的时均值，不止匹配的点 => 折线图
-        hourly_est = est.groupby(['time'], as_index=False)[self.y_column].mean()
-        hourly_cnemc = cnemc.groupby(['time'], as_index=False)['cnemc_no2'].mean()
+        hourly_est = merged.groupby(['time'], as_index=False)[self.y_column].mean()
+        hourly_cnemc = merged.groupby(['time'], as_index=False)['cnemc_no2'].mean()
         hourly_df = hourly_est.merge(right=hourly_cnemc, on=['time'])
         savepath = (
             path_util.est
