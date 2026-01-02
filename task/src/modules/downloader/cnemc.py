@@ -100,7 +100,7 @@ class CNEMCDownloader:
         """下载前面24h的cnemc数据，排除已下载的小时"""
         logger.info('=' * 120)
         self.log(time_util.dt2ymdh(dt), '准备获取之前24h内的数据')
-        # 已有的dt str, ymdh
+        # 已有的北京时间dt str, ymdh
         cur_dts: list[str] = []
         # 今天已有的
         cur_path = path_util.get_yymd_path_under_ds(
@@ -111,7 +111,7 @@ class CNEMCDownloader:
         )
         if os.path.exists(cur_path):
             df = pd.read_parquet(cur_path)
-            cur_dts.extend(list(df.time.unique()))
+            cur_dts.extend(list(df.beijing_time.unique()))
         # 昨天已有的
         pre_path = path_util.get_yymd_path_under_ds(
             [
@@ -121,7 +121,7 @@ class CNEMCDownloader:
         )
         if os.path.exists(pre_path):
             df = pd.read_parquet(pre_path)
-            cur_dts.extend(list(df.time.unique()))
+            cur_dts.extend(list(df.beijing_time.unique()))
         # 结果df列表
         df_ls: list[pd.DataFrame] = []
         # 排除已有的小时
