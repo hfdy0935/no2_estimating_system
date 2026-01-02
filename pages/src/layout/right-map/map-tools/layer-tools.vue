@@ -72,7 +72,7 @@ watch(showProvinceEdge, async val => {
         return
     }
     try {
-        loading.value = true
+        loading.value.push(0)
         const url1 =
             'https://mdn.alipayobjects.com/antforest/afts/file/A*vaL-R4SU18IAAAAAgCAAAAgAerd2AQ/original_2025-11-14.json';
         const result = await fetch(url1);
@@ -94,7 +94,7 @@ watch(showProvinceEdge, async val => {
     } catch {
         message.error('获取省边界失败')
     } finally {
-        loading.value = false
+        loading.value.pop()
     }
 })
 

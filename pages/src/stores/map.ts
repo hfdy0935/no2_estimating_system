@@ -7,7 +7,7 @@ import type { ICnemcItem } from '@/layout/right-map/map-tools/types'
 
 export const useMapStore = defineStore('map', () => {
     const scene = shallowRef<Scene>()
-    const loading = shallowRef(false)
+    const loading = ref<number[]>([])
     /** 底图图层 */
     const basemapLayer = shallowRef<RasterLayer | null>()
     /** 显示est_no2 tif数据的图层 */
@@ -35,16 +35,15 @@ export const useMapStore = defineStore('map', () => {
         const ymd = selectedFilename.value.slice(0, 8)
         const cnemcPath = `shared/data_source/cnemc/${year}/${ymd}.parquet`
         try {
-            loading.value = true
+            loading.value.push(0)
             cnemcData.value = await fetchAndParseParquet(cnemcPath)
         } catch {
             message?.error(`${cnemcPath}加载失败，数据不存在或出现错误，请验证数据是否存在或重试或联系作者`, { keepAliveOnHover: true })
         } finally {
-            loading.value = false
+            loading.value.pop()
         }
     }
     const handleCnemcLayer = async () => {
-        loading.value = true
         if (!cnemcLayer.value) {
             //  TODO需要看一下单位怎么统一
             cnemcLayer.value = new HeatmapLayer({ zIndex: 3 }).shape('circle')
@@ -67,7 +66,6 @@ export const useMapStore = defineStore('map', () => {
             )
             scene.value?.addLayer(cnemcLayer.value)
         } else cnemcLayer.value.setData(showedCnemcData.value)
-        loading.value = false
     }
     return { scene, loading, basemapLayer, estNo2Layer, provinceLayer, cnemcLayer, cnemcData, showedCnemcData, fetchCnemc, handleCnemcLayer }
 })

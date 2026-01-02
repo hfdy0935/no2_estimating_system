@@ -127,25 +127,34 @@ export const formatDatetimeStr = (dt: string) => {
  * @returns 
  */
 export const calculateMetrics = (yTrue: number[], yPred: number[]): Metric => {
-    const n = yTrue.length;
-    let sumAbs = 0; // 绝对误差和（用于MAE）
-    let sumSq = 0;  // 平方误差和（用于RMSE）
-    const yMean = yTrue.reduce((a, b) => a + b, 0) / n; // 真实值的平均值
-    let ssTotal = 0; // 总平方和（用于R²）
-    let ssResid = 0; // 残差平方和（用于R²）
+    const n = yTrue.length
+    let sumAbs = 0 // 绝对误差和（用于MAE）
+    let sumSq = 0  // 平方误差和（用于RMSE）
+    let sumX = 0, sumY = 0, sumX2 = 0, sumY2 = 0, sumXY = 0
 
     for (let i = 0; i < n; i++) {
-        const error = yTrue[i]! - yPred[i]!;
-        sumAbs += Math.abs(error);
-        sumSq += error ** 2;
-        ssTotal += (yTrue[i]! - yMean) ** 2;
-        ssResid += error ** 2;
+        const x = yTrue[i]!
+        const y = yPred[i]!
+        const error = x - y
+        sumAbs += Math.abs(error)
+        sumSq += error ** 2
+
+        sumX += x
+        sumY += y
+        sumX2 += x * x
+        sumY2 += y * y
+        sumXY += x * y
     }
+
+    const cov = (n * sumXY - sumX * sumY) / n
+    const stdX = Math.sqrt((n * sumX2 - sumX * sumX) / n)
+    const stdY = Math.sqrt((n * sumY2 - sumY * sumY) / n)
+    const R2 = (stdX === 0 || stdY === 0 ? 0 : cov / (stdX * stdY)).toFixed(2)
 
     return {
         N: n,
         MAE: (sumAbs / n).toFixed(2),
         RMSE: (Math.sqrt(sumSq / n)).toFixed(2),
-        R2: (1 - (ssResid / ssTotal)).toFixed(2)
-    };
-};
+        R2: R2
+    }
+}

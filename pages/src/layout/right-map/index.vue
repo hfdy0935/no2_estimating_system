@@ -1,5 +1,5 @@
 <template>
-    <n-spin :show="loading" description="加载中...">
+    <n-spin :show="loading.length > 0" description="加载中...">
         <div class="container">
             <map-tools></map-tools>
             <div id="map" ref="mapEl"></div>
@@ -26,14 +26,13 @@ const { selectedMenuOption, selectedMenuType } = storeToRefs(useMenuStore())
 const message = useMessage()
 
 
-
 /** 请求tif，解析，添加到scene */
 const handleTif = async () => {
     if (!scene.value) return
     const path = selectedMenuOption.value?.key
     if (!path) return
     try {
-        loading.value = true
+        loading.value.push(0)
         const response = await fetch(`${raw_base_url}/shared/estimate/${selectedMenuType.value}_tif/${path}`);
         const arrayBuffer = await response.arrayBuffer();
         const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
@@ -69,7 +68,7 @@ const handleTif = async () => {
     } catch {
         message.error(`${path}加载失败，数据不存在或出现错误，请验证数据是否存在或重试或联系作者`, { keepAliveOnHover: true })
     } finally {
-        loading.value = false
+        loading.value.pop()
     }
 }
 
