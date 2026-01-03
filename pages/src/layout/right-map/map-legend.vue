@@ -1,7 +1,9 @@
 <template>
     <div ref="container" class="container">
         <h3>图例</h3>
-        <h4>NO<sub>2</sub> (ug/m<sup>3</sup>)</h4>
+        <h4>
+            <NO2></NO2> (ug/m<sup>3</sup>)
+        </h4>
         <div v-for="(grade, idx) in grades" :key="grade" class="item">
             <div class="block" :style="{ background: colors[idx] }"></div>
             {{ grade }}
@@ -13,7 +15,7 @@
 import { useMapStore } from '@/stores/map';
 import { Control } from '@antv/l7';
 import { storeToRefs } from 'pinia';
-
+import NO2 from '@/components/no2.vue'
 const grades = ['0 - 15', '15 - 30', '30 - 45', '45 - 60', '60 - 75', '75 - 90', '> 90'].reverse()
 const colors = [
     '#6D9F00',

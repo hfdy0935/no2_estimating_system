@@ -15,7 +15,7 @@ import { useMapStore } from '@/stores/map';
 import { Map as L7Map } from '@antv/l7-maps';
 import * as GeoTIFF from 'geotiff'
 import { useMenuStore } from '@/stores/menu';
-import { ChinaRect, raw_base_url } from '@/constants';
+import { ChinaRect, ColorbarConfig, raw_base_url } from '@/constants';
 import MapTools from './map-tools/index.vue';
 import MapLegend from './map-legend.vue';
 
@@ -46,19 +46,11 @@ const handleTif = async () => {
         if (!estNo2Layer.value) {
             estNo2Layer.value = new RasterLayer({ zIndex: 1, autoFit: true })
             estNo2Layer.value.style({
-                domain: [0, 90],
+                domain: ColorbarConfig.domain,
                 rampColors: {
                     type: 'linear',
-                    colors: [
-                        '#6D9F00',
-                        '#92B800',
-                        '#C8DB00',
-                        '#FFFC00',
-                        '#FFB000',
-                        '#FF6200',
-                        '#FF2200',
-                    ],
-                    positions: [0, 15, 30, 45, 60, 75, 90],
+                    colors: ColorbarConfig.colors,
+                    positions: ColorbarConfig.positions,
                 },
             })
             // 设置图层数据，默认只有一个波段
@@ -114,6 +106,7 @@ watchEffect(() => {
         basemapLayer.value = layer
         if (!scene.value) return
         scene.value.addLayer(layer)
+        // 控件
         scene.value.addControl(new Scale({
             position: 'leftbottom'
         }))

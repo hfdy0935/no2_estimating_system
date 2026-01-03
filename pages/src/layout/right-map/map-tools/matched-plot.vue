@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import { Chart } from '@antv/g2';
-import type { RawHourlyDataItem } from './types';
+import type { RawHourlyDataItem } from '@/types';
 import { storeToRefs } from 'pinia';
 import { MenuType, useMenuStore } from '@/stores/menu';
 import * as _ from 'lodash-es'

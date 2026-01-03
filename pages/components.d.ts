@@ -12,6 +12,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    LayerPopup: typeof import('./src/components/layer-popup.vue')['default']
     NAlert: typeof import('naive-ui')['NAlert']
     NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
@@ -45,6 +46,7 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
+  const LayerPopup: typeof import('./src/components/layer-popup.vue')['default']
   const NAlert: typeof import('naive-ui')['NAlert']
   const NButton: typeof import('naive-ui')['NButton']
   const NCard: typeof import('naive-ui')['NCard']

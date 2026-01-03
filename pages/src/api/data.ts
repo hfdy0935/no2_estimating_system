@@ -3,14 +3,15 @@ import { raw_base_url, REPO_FULL_NAME } from "@/constants";
 import axios from "axios"
 
 export const getRepoTree = () => {
-    return axios.get<GitHubTreeResp>(`https://api.github.com/repos/${REPO_FULL_NAME}/git/trees/main`, {
-        params: {
-            recursive: 1
-        },
-        timeout: 5000
-    })
-
-    // mock
+    if (import.meta.env.PROD) {
+        return axios.get<GitHubTreeResp>(`https://api.github.com/repos/${REPO_FULL_NAME}/git/trees/main`, {
+            params: {
+                recursive: 1
+            },
+            timeout: 10000
+        })
+    }
+    // 开发环境用mock数据，防止请求太频繁达到上限
     return Promise.resolve({
         status: 200,
         data: {

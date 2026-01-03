@@ -10,6 +10,7 @@ export enum MenuType {
 
 
 export const useMenuStore = defineStore('menu', () => {
+  const loading = ref<boolean>(false)
   /** 每日选项数组 */
   const dailyMenuOptions = ref<MenuOption[]>([])
   /** 每小时选项数组 */
@@ -27,6 +28,7 @@ export const useMenuStore = defineStore('menu', () => {
   const collapsed = ref(false)
 
   return {
+    loading,
     dailyMenuOptions, hourlyMenuOptions, selectedMenuType,
     selectedMenuOption, selectedFilename, collapsed
   }
