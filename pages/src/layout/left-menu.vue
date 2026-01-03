@@ -61,7 +61,7 @@ watchEffect(async () => {
         hourlyMenuOptions.value = res.hourly
     } catch (err) {
         if (err instanceof AxiosError && err.status === 403) {
-            message.error('请求太频繁，以达到GitHub的限制，请稍后再试')
+            message.error('请求数据目录太频繁，已达到GitHub的限制，请稍后再试')
         } else
             message.error('获取GitHub目录失败，请稍后重试或联系作者')
     } finally {
