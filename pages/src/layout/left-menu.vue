@@ -7,7 +7,7 @@
                 <n-tab-pane :name="MenuType.DAILY" tab="每天">
                     <n-menu v-if="dailyMenuOptions.length" v-model:value="activeKey" :collapsed :collapsed-width="96"
                         :collapsed-icon-size="22" :indent="14" :options="dailyMenuOptions"
-                        @update-value="(value, option) => selectedMenuOption = option" />
+                        @update-value="(value: string & number & (string | number), option: MenuOption) => selectedMenuOption = option" />
                     <n-empty v-else description="暂无数据" :show-icon="false" style="padding-top: 240px;">
                         <template #extra>
                             <n-button size="small" @click="openRepo">
@@ -42,6 +42,7 @@ import { extractEstNO2MenuOptions } from '@/utils'
 import { MenuType, useMenuStore } from '@/stores/menu'
 import { storeToRefs } from 'pinia'
 import { AxiosError } from 'axios'
+import type { MenuOption } from 'naive-ui'
 
 defineOptions({
     name: 'MapLeftMenu'
