@@ -26,8 +26,8 @@ const hourlyData = computed<HourlyDataItem[]>(() => {
 })
 const chart = shallowRef<Chart>()
 const container = useTemplateRef('container')
-watch([container, hourlyData], ([container, data]) => {
-    if (!container || !data.length) return
+watch([container, hourlyData], ([container, hourlyData]) => {
+    if (!container || !hourlyData.length) return
     chart.value?.destroy()
     chart.value = new Chart({
         container,
@@ -36,7 +36,7 @@ watch([container, hourlyData], ([container, data]) => {
         height: 300
     })
     chart.value
-        .data(hourlyData.value)
+        .data(hourlyData)
         .encode('x', 'hour')
         .encode('y', 'NO2')
         .encode('color', 'source')

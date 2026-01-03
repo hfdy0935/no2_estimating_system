@@ -52,7 +52,7 @@ const message = useMessage()
 
 const activeKey = ref<string | null>(null)
 const { collapsed, dailyMenuOptions, hourlyMenuOptions, selectedMenuOption, loading } = storeToRefs(useMenuStore())
-watchEffect(async () => {
+onMounted(async () => {
     try {
         loading.value = true
         const resp = await getRepoTree()

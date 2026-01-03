@@ -42,8 +42,8 @@ const { handleCnemcLayer, fetchCnemc } = useMapStore()
 const showCnemc = ref(false)
 
 /** 监听切换数据 */
-watch([selectedMenuOption], () => {
-    fetchCnemc(message)
+watch([selectedMenuOption], async () => {
+    await fetchCnemc(message)
     if (showCnemc.value) {
         handleCnemcLayer()
     }

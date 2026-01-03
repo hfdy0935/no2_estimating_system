@@ -74,7 +74,7 @@ export const useMapStore = defineStore('map', () => {
             loading.value.pop()
         }
     }
-    const handleCnemcLayer = async () => {
+    const handleCnemcLayer = () => {
         if (!cnemcLayer.value) {
             cnemcLayer.value = new PointLayer({ zIndex: 3 })
             cnemcLayer.value.shape('circle')

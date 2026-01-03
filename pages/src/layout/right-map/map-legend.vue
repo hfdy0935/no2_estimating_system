@@ -30,7 +30,7 @@ const containerRef = useTemplateRef('container')
 
 const { scene, basemapLayer } = storeToRefs(useMapStore())
 
-watchEffect(() => {
+watch([basemapLayer, scene, containerRef], () => {
     if (!basemapLayer.value || !scene.value || !containerRef.value) return
     const legend = new Control({
         position: 'bottomleft'

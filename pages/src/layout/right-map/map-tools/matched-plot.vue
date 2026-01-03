@@ -61,8 +61,8 @@ const columns: DataTableColumns<Metric> = [
 ]
 const chart = shallowRef<Chart>()
 const container = useTemplateRef('container')
-watch([container, matchedData], ([container, data]) => {
-    if (!container || !data.length) return
+watch([container, matchedData], ([container, matchedData]) => {
+    if (!container || !matchedData.length) return
     chart.value?.destroy()
     chart.value = new Chart({
         container,
@@ -70,12 +70,12 @@ watch([container, matchedData], ([container, data]) => {
         width: 400,
         height: 400
     })
-    if (matchedData.value.length > 6000) {
+    if (matchedData.length > 6000) {
         message.warning('点数量>6000，为保证用户体验，随机取6000个点展示，不影响精度指标')
     }
     chart.value
         .point()
-        .data(_.sampleSize(matchedData.value, 6000))
+        .data(_.sampleSize(matchedData, 6000))
         .encode('x', 'cnemc_no2')
         .encode('y', 'est_no2')
         .encode('size', 1)

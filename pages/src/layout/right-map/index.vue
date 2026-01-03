@@ -76,7 +76,7 @@ watch(selectedMenuOption, () => {
 })
 
 /** 加载地图 */
-watchEffect(() => {
+watch(mapEL, () => {
     if (!mapEL.value) return
     scene.value = new Scene({
         id: mapEL.value,
