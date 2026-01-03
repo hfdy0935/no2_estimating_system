@@ -142,10 +142,10 @@ class Estimator:
             / self.ymd
             / 'match_cnemc_est.parquet',
         )
-        # 3. est和cnemc的时均值，不止匹配的点 => 折线图
-        hourly_est = merged.groupby(['time'], as_index=False)[self.y_column].mean()
-        hourly_cnemc = merged.groupby(['time'], as_index=False)['cnemc_no2'].mean()
-        hourly_df = hourly_est.merge(right=hourly_cnemc, on=['time'])
+        # 3. est和cnemc的时均值 => 折线图
+        hourly_df = merged.groupby('time', as_index=False)[
+            [self.y_column, 'cnemc_no2']
+        ].mean()
         savepath = (
             path_util.est
             / 'stat'
