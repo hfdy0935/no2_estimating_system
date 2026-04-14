@@ -42,6 +42,7 @@ jobs:
           version: 10.16.0
       - name: Install
         run: |
+          cd pages
           pnpm i
           pnpm run build
       - name: Setup Pages
