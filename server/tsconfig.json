@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        // 核心编译目标（兼容主流环境）
+        "target": "esnext",
+        // 模块系统（通用 ES 模块）
+        "module": "ESNext",
+        "noEmit": true,
+        "allowImportingTsExtensions": true
+    }
+}

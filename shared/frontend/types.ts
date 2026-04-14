@@ -1,0 +1,14 @@
+/** GitHub api tree获取结果 */
+export interface GitHubTreeResp {
+    sha: string
+    url: string
+    tree: {
+        path: string
+        mode: string
+        type: 'tree' | 'blob'
+        sha: string
+        size?: number
+        url: string
+    }[]
+    truncated: boolean
+}

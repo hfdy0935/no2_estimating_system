@@ -1,0 +1,16 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+node_modules
+pnpm-lock.yaml
+# Virtual environments
+*.venv
+*.env
+
+
+# 本地数据
+*.ipynb

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NO2在线估算系统数据下载</title>
+</head>
+
+<body>
+    <h3>欢迎使用近地面NO<sub>2</sub>在线估算系统</h3>
+    <p>我们在GitHub Issues收到了你的数据请求，具体信息如下：</p>
+    <ul>
+        <li>时间：{{ issue_time }}</li>
+        <li>用户：{{ issue_username }}</li>
+        <li>内容：{{ issue_content }}</li>
+        <li>链接：<a href="{{ issue_link }}" target="_blank">在此</a></li>
+    </ul>
+    <p>现为你准备了{{ start }}-{{ end }}的近地面NO<sub>2</sub>数据，请在<b style="color:red">附件中</b>查收~</p>
+    <p>数据略大，会分批发送，<b>当前邮件进度:</b> <b style="color:red">{{ cur }} / {{ total }}</b></p>
+    <p><a href="{{ repo_link }}" target="_blank">项目</a>还在不断完善中，欢迎Star，欢迎加入共建</p>
+</body>
+
+</html>
