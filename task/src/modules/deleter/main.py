@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import shutil
 from typing import Final
-from src.utils.light import path_util, df_util, time_util, est_record_util
+from src.utils.light import path_util, df_util, time_util, est_record_util, logger, cs
 
 
 class Deleter:
@@ -59,12 +59,16 @@ class Deleter:
                 hourly_dir.parent.rmdir()
         # 5. 移除record
         records = est_record_util.get_raw()
-        records.remove(ymd)
+        records = [r for r in records if r != ymd]
         est_record_util.replace(records)
         return self
 
+    def log(self, msg: str, dt_str: str):
+        logger.info(f'{dt_str} {msg}')
+
     def run(self, dt: datetime):
         self.del_era5(dt).del_gems(dt).del_geoscf(dt).del_rec(dt).del_est(dt)
+        self.log(cs.green('删除完成'), time_util.dt2ymd(dt))
 
     del_max_interval: Final[timedelta] = timedelta(days=60)
     """最多保留60天数据"""
