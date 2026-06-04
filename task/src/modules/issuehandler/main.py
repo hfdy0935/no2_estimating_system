@@ -14,7 +14,7 @@ from email.mime.text import MIMEText
 
 import requests
 from src.config import SecretConfig
-from src.utils.light import time_util, est_record_util, path_util, logger
+from src.utils.light import time_util, est_record_util, path_util, logger, cs
 from src.constant import SHARED_DIR, IssueUsernameWhiteList
 
 # 配置见https://docs.github.com/zh/rest/issues/issues?apiVersion=2022-11-28#get-an-issue
@@ -69,7 +69,7 @@ class IssueContent:
 
 class Emailtool:
     def __init__(self) -> None:
-        self.email = '911187207@qq.com'
+        self.email = SecretConfig.EMAIL_SERVICE
         self.service_code = SecretConfig.EMAIL_SERVICE_CODE
         self.template: Template = Template(
             open(SHARED_DIR / 'email_template.html', 'r', encoding='utf-8').read()
@@ -152,7 +152,9 @@ class Emailtool:
         part = MIMEBase("application", "zip")
         part.set_payload(zip_buffer.getvalue())
         encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment; filename=data.zip')
+        part.add_header(
+            'Content-Disposition', f'attachment; filename=data_{cur}_{total}.zip'
+        )
         msg.attach(part)
         # 3. 发送
         # https://wx.mail.qq.com/list/readtemplate?name=app_intro.html#/agreement/authorizationCode
@@ -222,7 +224,7 @@ class IssueTool:
             headers=GitHubApiHeaders,
         )
         if resp.status_code >= 200 and resp.status_code < 300:
-            log('回复成功')
+            log(cs.green('回复成功'))
         else:
             log('回复失败')
 
@@ -238,18 +240,18 @@ class IssueTool:
     def reply_process_error(self, e: Exception):
         """回复处理失败"""
         log(
-            f'处理失败，{e.args}',
+            cs.red(f'处理失败，{e.args}'),
         )
         self.reply(
             '流程执行失败，请确保issue格式符合要求（例如："20251218, xxx@qq.com"），或稍后重试，或联系作者'
         )
 
     def reply_fetch_fail(self):
-        log(f'请求issue ${SecretConfig.ISSUE_NUMBER}失败')
+        log(cs.red(f'请求issue ${SecretConfig.ISSUE_NUMBER}失败'))
         self.reply('issue信息获取失败，请稍后重试或联系作者')
 
     def reply_success(self, msg: str):
-        log(f'发送数据成功')
+        log(cs.green(f'发送数据成功'))
         self.reply(msg)
 
     def close(self):
@@ -257,9 +259,9 @@ class IssueTool:
             self.close_url, headers=GitHubApiHeaders, json={'state': 'closed'}
         )
         if resp.status_code == 200:
-            log('关闭成功')
+            log(cs.green('关闭成功'))
         else:
-            log('关闭失败')
+            log(cs.red('关闭失败'))
 
 
 class IssueHandler:
@@ -287,11 +289,11 @@ class IssueHandler:
             self.issue_tool.reply_fetch_fail()
             return
         if issue_info.status == 'ignore':
-            log(f'title非{self.target_issue_title}，已忽略')
+            log(cs.yellow(f'title非{self.target_issue_title}，已忽略'))
             return
         # 判断是否在白名单中
         if issue_info.username not in IssueUsernameWhiteList:
-            log(f'{issue_info.username}非白名单用户，已忽略')
+            log(cs.yellow(f'{issue_info.username}非白名单用户，已忽略'))
             self.issue_tool.reply('你不是白名单用户，暂无权限，请联系作者')
             return
         try:

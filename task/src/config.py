@@ -3,7 +3,6 @@ import dotenv
 
 from src.types import Maybe
 
-
 dotenv.load_dotenv()
 
 
@@ -16,5 +15,6 @@ class SecretConfig:
     GITHUB_TOKEN: str = os.getenv('GITHUB_TOKEN', '')
     ISSUE_NUMBER: int = int(os.getenv('ISSUE_NUMBER', -1))
     REPO_FULL_NAME: str = os.getenv('REPO_FULL_NAME', '')  # username/reponame
-    # 邮箱service code
+    # 邮箱
+    EMAIL_SERVICE: str = os.getenv('EMAIL_SERVICE', '')
     EMAIL_SERVICE_CODE: str = os.getenv('EMAIL_SERVICE_CODE', '')
