@@ -8,7 +8,7 @@ import logging
 import os
 from pathlib import Path
 import time
-from typing import Any, Callable, Literal, Self
+from typing import Any, Callable, Final, Literal, Self
 import pandas as pd
 from fastparquet import write as write_parquet
 from zoneinfo import ZoneInfo
@@ -322,13 +322,13 @@ class DataFrameUtil:
         df['time'] = df.time.astype(str)
         return df
 
+    era5_parts: Final[list[str]] = [f'part{i}' for i in range(1, 5)]
+
     def read_era5(self, dt: datetime):
         return pd.concat(
             [
-                pd.read_parquet(path_util.gen_pq_path_under_ds(['era5', 'part1'], dt)),
-                pd.read_parquet(path_util.gen_pq_path_under_ds(['era5', 'part2'], dt)),
-                pd.read_parquet(path_util.gen_pq_path_under_ds(['era5', 'part3'], dt)),
-                pd.read_parquet(path_util.gen_pq_path_under_ds(['era5', 'part4'], dt)),
+                pd.read_parquet(path_util.gen_pq_path_under_ds(['era5', part], dt))
+                for part in self.era5_parts
             ],
             axis=1,
         )
@@ -579,10 +579,19 @@ class DataRecordUtil:
     def __init__(self, path: Path) -> None:
         self.path = path
 
-    def write(self, msg: str):
-        """写入"""
+    def append(self, msg: str):
+        """追加"""
         json.dump(
             [*self.get_raw(), msg],
+            open(self.path, 'w', encoding='utf-8'),
+            indent=4,
+            ensure_ascii=False,
+        )
+
+    def replace(self, msg: Any):
+        """替换"""
+        json.dump(
+            msg,
             open(self.path, 'w', encoding='utf-8'),
             indent=4,
             ensure_ascii=False,
@@ -594,7 +603,7 @@ class DataRecordUtil:
         start = time.time()
         yield
         end = time.time()
-        self.write(
+        self.append(
             f'[{time_util.dt2ymdhm(time_util.beijing_now())}] {msg} {(end - start):.2f}s'
         )
 

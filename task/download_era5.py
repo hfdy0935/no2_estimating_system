@@ -3,6 +3,7 @@ import sys
 from src.modules.downloader.era5 import ERA5Downloader, download_era5
 from src.modules.reconstructor.main import reconstruct_no2
 from src.modules.estimator.main import estimate_no2
+from src.modules.deleter.main import deleter
 from src.utils.light import time_util
 
 
@@ -12,6 +13,7 @@ def run_period(s: datetime, e: datetime):
         reconstruct_no2(dt=dt)
         estimate_no2(dt=dt)
         s += timedelta(days=1)
+        deleter.run(dt=dt - deleter.del_max_interval)
 
 
 if __name__ == "__main__":

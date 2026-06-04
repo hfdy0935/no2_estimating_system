@@ -176,7 +176,7 @@ class GEMSDownloader:
         self.ymd = time_util.dt2ymd(dt)
 
     def log(self, msg: str, dt_str: str = ''):
-        logger.info(f'{dt_str or self.ymd} {msg}')
+        logger.info(f'[GEMS] {dt_str or self.ymd} {msg}')
 
     def _read_gems(self, buffer: BytesIO, ymdh: str) -> pd.DataFrame:
         """读取+处理GEMS数据
@@ -247,11 +247,11 @@ class GEMSDownloader:
         savepath = path_util.gen_pq_path_under_ds(['gems'], self.dt)
         # 1. 如果已下载
         if savepath.exists():
-            logger.info(cs.yellow('已下载，跳过'))
+            logger.info(cs.yellow('[GEMS] 已下载，跳过'))
             return
         # 2. 查询这一天有多少数据
         params: list[tuple[str, dict]] = self.fetcher.get_obs_params(self.dt)
-        logger.info(f'查询成功，共{len(params)}条，开始下载')
+        logger.info(f'[GEMS] 查询成功，共{len(params)}条，开始下载')
         # 3. 分别请求
         df_ls: list[pd.DataFrame] = []
         # tasks: list[Callable[..., pd.DataFrame]] = []
@@ -273,12 +273,14 @@ class GEMSDownloader:
         # ):
         #     df_ls.append(df)
         if len(df_ls) == 0:
-            logger.info(cs.yellow('无符合要求的数据，本次流程结束'))
+            logger.info(cs.yellow('[GEMS] 无符合要求的数据，本次流程结束'))
             return
         # 4. 保存
         df = pd.concat(df_ls)
         df_util.save_parquet(df=df, path=savepath)
-        logger.info(cs.green(f'  √ 下载成功，已保存至{path_util.rel2abs(savepath)}'))
+        logger.info(
+            cs.green(f'[GEMS]  √ 下载成功，已保存至{path_util.rel2abs(savepath)}')
+        )
 
 
 def download_gems(dt: Maybe[datetime] = None):

@@ -51,7 +51,7 @@ class ERA5Downloader(GEEDownloader):
         self.ymd = time_util.dt2ymd(self.dt)
 
     def log(self, msg: str, dt_str: str = ''):
-        logger.info(f'{dt_str or self.ymd} {msg}')
+        logger.info(f'[ERA5] {dt_str or self.ymd} {msg}')
 
     def _handle_single_era5(self, image: ee.image.Image, dt: datetime) -> pd.DataFrame:
         """处理某一小时的era5 image，转为DataFrame
@@ -100,7 +100,7 @@ class ERA5Downloader(GEEDownloader):
         logger.info(cs.blue('=' * 50 + time_util.dt2ymd(self.dt) + ' ERA5 ' + '=' * 50))
         # 1. 如果已下载
         if path_util.gen_pq_path_under_ds(['era5', 'part1'], self.dt).exists():
-            logger.info(cs.yellow('已下载，跳过'))
+            logger.info(cs.yellow('[ERA5] 已下载，跳过'))
             return
         # 2. 查询
         geoscf: ee.imagecollection.ImageCollection = (
@@ -111,7 +111,7 @@ class ERA5Downloader(GEEDownloader):
         )
         # 3. 处理
         total = cast(int, geoscf.size().getInfo())
-        logger.info(f'查询成功，共{total}条数据，开始下载')
+        logger.info(f'[ERA5] 查询成功，共{total}条数据，开始下载')
         geoscf_ls = geoscf.toList(total)
         df_ls: list[pd.DataFrame] = []
         for i in range(total):  # 0-23
@@ -120,13 +120,13 @@ class ERA5Downloader(GEEDownloader):
             df_ls.append(self._handle_single_era5(image, current))
             self.log('下载成功', dt_str=time_util.dt2ymdh(current))
         if len(df_ls) == 0:
-            logger.info(cs.yellow('无符合要求的数据，本次流程结束'))
+            logger.info(cs.yellow('[ERA5] 无符合要求的数据，本次流程结束'))
             return
         # 4. 保存
         df = pd.concat(df_ls)
         df_util.save_era5(df[['lon', 'lat', 'time', *self.local_era5_columns]])
         savepath = path_util.gen_pq_path_under_ds(['era5', '*'], self.dt)
-        logger.info(cs.green(f'下载成功，已保存至{path_util.rel2abs(savepath)}'))
+        logger.info(cs.green(f'[ERA5] 下载成功，已保存至{path_util.rel2abs(savepath)}'))
 
 
 def download_era5(dt: Maybe[datetime] = None) -> datetime:

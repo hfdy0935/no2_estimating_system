@@ -162,7 +162,7 @@ class NewGEOSCFDownloader(GEEDownloader):
         self.lock = threading.Lock()
 
     def log(self, msg: str, dt_str: str = ''):
-        logger.info(f'{dt_str or self.ymd} {msg}')
+        logger.info(f'[GEOS-CF] {dt_str or self.ymd} {msg}')
 
     def _handle_geoscf(self, nc_file: Dataset, dt: datetime) -> pd.DataFrame:
         """提取某一小时的Dataset，转为dataframe
@@ -225,7 +225,10 @@ class NewGEOSCFDownloader(GEEDownloader):
                 )
                 break
             except Exception as e:
-                self.log(f'第{retry+1}次尝试: {e}', dt_str=time_util.dt2ymdh(target_dt))
+                self.log(
+                    f'[GEOS-CF] 第{retry+1}次尝试: {e}',
+                    dt_str=time_util.dt2ymdh(target_dt),
+                )
                 resp = None
         if resp:
             nc_buffer = BytesIO(resp.content)
@@ -244,14 +247,14 @@ class NewGEOSCFDownloader(GEEDownloader):
         savepath = path_util.gen_pq_path_under_ds(['geoscf'], self.dt)
         # 1. 如果已下载
         if savepath.exists():
-            logger.info(cs.yellow('已下载，跳过'))
+            logger.info(cs.yellow('[GEOS-CF] 已下载，跳过'))
             return
         # 2. 下载
         df_queue: Queue[pd.DataFrame] = Queue()
         execute_dt = self.dt + self.diff
         # tasks: list[Callable] = []
         # argss: list[list[Any]] = []
-        logger.info('开始下载')
+        logger.info('[GEOS-CF] 开始下载')
         for i in range(24):
             # tasks.append(self._download_task)
             target_dt = self.dt + timedelta(hours=i)
@@ -260,14 +263,16 @@ class NewGEOSCFDownloader(GEEDownloader):
         # run_in_thread_pool(tasks=tasks, argss=argss)
         # 3. 保存
         if df_queue.empty():
-            logger.info(cs.yellow(f'暂无数据，跳过'))
+            logger.info(cs.yellow('[GEOS-CF] 暂无数据，跳过'))
             return
         df_ls: list[pd.DataFrame] = []
         while not df_queue.empty():
             df_ls.append(df_queue.get())
         df = pd.concat(df_ls)
         df_util.save_parquet(df, savepath)
-        logger.info(cs.green(f'  √ 下载成功，已保存至{path_util.rel2abs(savepath)}'))
+        logger.info(
+            cs.green(f'[GEOS-CF]  √ 下载成功，已保存至{path_util.rel2abs(savepath)}')
+        )
 
 
 def download_geoscf(dt: Maybe[datetime] = None):

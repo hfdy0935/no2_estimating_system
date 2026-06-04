@@ -154,7 +154,7 @@ class Estimator:
             cs.green(f'  √ 估算成功，hourly tif已保存至{path_util.rel2abs(savedir)}/')
         )
         # 5. 数据记录
-        est_record_util.write(self.ymd)
+        est_record_util.append(self.ymd)
         # 6. 保存统计结果
         self._save_stat(est=pred)
 
