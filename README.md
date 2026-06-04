@@ -36,8 +36,8 @@
 
 |      流程       |              截图               |
 | :-------------: | :-----------------------------: |
-| `issue`自动回复 | ![alt text](assets/image-1.png) |
-|      邮件       | ![alt text](assets/image-2.png) |
+| `issue`自动回复 |  ![alt text](assets/image.png)  |
+|      邮件       | ![alt text](assets/image-1.png) |
 
 ## 5. 其他
 
