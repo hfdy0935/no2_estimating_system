@@ -7,17 +7,16 @@ from io import BytesIO
 import logging
 from pathlib import Path
 import smtplib
-from typing import Literal
+from typing import Final, Literal
 import zipfile
 from jinja2 import Template
 from email.mime.text import MIMEText
 
 import requests
 from src.config import SecretConfig
-from src.utils.light import time_util, est_record_util, path_util
+from src.utils.light import time_util, est_record_util, path_util, logger
 from src.constant import SHARED_DIR, IssueUsernameWhiteList
 
-logger = logging.getLogger()
 # 配置见https://docs.github.com/zh/rest/issues/issues?apiVersion=2022-11-28#get-an-issue
 GitHubApiHeaders = {
     'Accept': 'application/vnd.github+json',
@@ -46,7 +45,7 @@ def log(msg: str):
 class FetchIssueResult:
     """请求issue的结果"""
 
-    status: Literal['fulfilled', 'rejected', 'ignore']
+    status: Literal['fulfill', 'reject', 'ignore']
     msg: str = ''
     title: str = ''
     username: str = ''
@@ -196,20 +195,20 @@ class IssueTool:
         self.get_url = f'https://api.github.com/repos/{SecretConfig.REPO_FULL_NAME}/issues/{SecretConfig.ISSUE_NUMBER}'
         self.reply_url = f'https://api.github.com/repos/{SecretConfig.REPO_FULL_NAME}/issues/{SecretConfig.ISSUE_NUMBER}/comments'
         self.close_url = f'https://api.github.com/repos/{SecretConfig.REPO_FULL_NAME}/issues/{SecretConfig.ISSUE_NUMBER}'
-        self.target_issue_title = target_issue_title
+        self.target_issue_title: Final[str] = target_issue_title
 
     def fetch_issue_info(self):
         """请求issue信息"""
         resp = requests.get(self.get_url, headers=GitHubApiHeaders)
         if resp.status_code != 200:
-            return FetchIssueResult('rejected', '获取issue信息失败')
+            return FetchIssueResult('reject', '获取issue信息失败')
         _data = resp.json()
         # 过滤issue标题
         title = _data.get('title')
         if title != self.target_issue_title:
             return FetchIssueResult('ignore')
         return FetchIssueResult(
-            status='fulfilled',
+            status='fulfill',
             msg=title,
             username=_data.get('user', {}).get('login'),
             updated_at=_data.get('updated_at'),
@@ -241,7 +240,9 @@ class IssueTool:
         log(
             f'处理失败，{e.args}',
         )
-        self.reply('流程执行失败，请确保issue格式符合要求，或稍后重试，或联系作者')
+        self.reply(
+            '流程执行失败，请确保issue格式符合要求（例如："20251218, xxx@qq.com"），或稍后重试，或联系作者'
+        )
 
     def reply_fetch_fail(self):
         log(f'请求issue ${SecretConfig.ISSUE_NUMBER}失败')
@@ -276,13 +277,13 @@ class IssueHandler:
         """
         day, email = content.split(',')
         return IssueContent(
-            date=time_util.ymd2dt(day),
+            date=time_util.ymd2dt(day.strip()),
             email=email.strip(),
         )
 
     def run(self):
         issue_info = self.issue_tool.fetch_issue_info()
-        if issue_info.status == 'rejected':
+        if issue_info.status == 'reject':
             self.issue_tool.reply_fetch_fail()
             return
         if issue_info.status == 'ignore':
