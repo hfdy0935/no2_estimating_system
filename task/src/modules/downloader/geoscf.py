@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 from queue import Queue
 import threading
-from typing import Any, Callable, cast
+from typing import cast
 from warnings import deprecated
 import ee
 import geemap
@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 import requests
 from src.utils.light import (
-    run_in_thread_pool,
     time_util,
     path_util,
     df_util,
@@ -134,28 +133,26 @@ class NewGEOSCFDownloader(GEEDownloader):
 
     **数据**
     >>> 更新：每天更新当天 + 后面5天的
-    >>> 链接：https://portal.nccs.nasa.gov/datashare/gmao/geos-cf/v2/forecast
+    >>> 链接：https://portal.nccs.nasa.gov/datashare/gmao/geos-cf/v2/ana
 
 
     **下载**
     >>> 频率：每天
-    >>> 时间：utc-1
-
-    # day的可以在day, day-1, day-2, day-3, day-4, day-5下载
-    # day: 9:30 - 23:30
-    # day-1, day-2, day-3, day-4: 0:30 - 23:30
-    # day-5: 0:30 - 8:30
+    >>> 时间：utc-2
     """
 
-    diff = timedelta(days=-1)
+    diff = timedelta(days=-2)
 
     def __init__(self, dt: datetime):
         super().__init__()
         self.gee_no2_column = 'TropCol_NO2'
         self.local_no2_column = 'geoscf_no2'
-        self.dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
+        self.dt = dt.replace(hour=0, minute=0, second=0, microsecond=0) + self.diff
         self.ymd = time_util.dt2ymd(self.dt)
-        self.base_url = 'https://portal.nccs.nasa.gov/datashare/gmao/geos-cf/v2/forecast/Y{execute_year}/M{execute_month}/D{execute_day}/GEOS.cf.fcst.xgc_tavg_1hr_glo_L1440x721_slv.{execute_ymd}_09z%2B{target_ymd}_{target_hm}z.R0.nc4'
+        # self.base_url = 'https://portal.nccs.nasa.gov/datashare/gmao/geos-cf/v2/forecast/Y{execute_year}/M{execute_month}/D{execute_day}/GEOS.cf.fcst.xgc_tavg_1hr_glo_L1440x721_slv.{execute_ymd}_09z%2B{target_ymd}_{target_hm}z.R0.nc4'
+        # 官网的v2/forecast突然没了...，换个数据源
+        self.base_url = 'https://portal.nccs.nasa.gov/datashare/gmao/geos-cf/v2/ana/Y{target_year}/M{target_month}/D{target_day}/GEOS.cf.ana.xgc_tavg_1hr_glo_L1440x721_slv.{target_ymd}_{target_hm}z.R0.nc4'
+        self.session = requests.Session()
         self.request_timeout = 1200  # s
         self.max_retries: int = 10
         self.max_workers: int = 6
@@ -184,8 +181,8 @@ class NewGEOSCFDownloader(GEEDownloader):
         del lats
         df = pd.DataFrame(
             data={
-                'lon': lon_grid.data.flatten(),
-                'lat': lat_grid.data.flatten(),
+                'lon': lon_grid.data.flatten(),  # type: ignore
+                'lat': lat_grid.data.flatten(),  # type: ignore
                 'time': time_util.dt2ymdh(dt),
                 self.local_no2_column: no2.data.flatten(),
             }
@@ -202,26 +199,24 @@ class NewGEOSCFDownloader(GEEDownloader):
         )
         return df
 
-    def _format_url(self, execute_dt: datetime, target_dt: datetime):
-        """根据执行时间和目标时间格式化url"""
-        dt_str = time_util.dt2ymd(execute_dt)
-        return self.base_url.format(
-            execute_year=dt_str[:4],
-            execute_month=dt_str[4:6],
-            execute_day=dt_str[-2:],
-            execute_ymd=dt_str,
-            target_ymd=time_util.dt2ymd(target_dt),
+    def _format_url(self, url: str, target_dt: datetime):
+        """根据目标时间格式化url"""
+        dt_str = time_util.dt2ymd(target_dt)
+        return url.format(
+            target_year=dt_str[:4],
+            target_month=dt_str[4:6],
+            target_day=dt_str[-2:],
+            target_ymd=dt_str,
             target_hm=time_util.dt2ymdhm(target_dt)[-4:-2] + '30',
         )
 
-    def _download_task(
-        self, target_dt: datetime, queue: Queue[pd.DataFrame], execute_dt: datetime
-    ):
+    def _download_task(self, target_dt: datetime, queue: Queue[pd.DataFrame]):
         for retry in range(self.max_retries):
             try:
-                resp = requests.get(
-                    self._format_url(execute_dt=execute_dt, target_dt=target_dt),
-                    # timeout=self.request_timeout,
+                print(self._format_url(url=self.base_url, target_dt=target_dt))
+                resp = self.session.get(
+                    self._format_url(url=self.base_url, target_dt=target_dt),
+                    # timeout=self.request_timeout
                 )
                 break
             except Exception as e:
@@ -251,14 +246,14 @@ class NewGEOSCFDownloader(GEEDownloader):
             return
         # 2. 下载
         df_queue: Queue[pd.DataFrame] = Queue()
-        execute_dt = self.dt + self.diff
+        # execute_dt = self.dt + self.diff
         # tasks: list[Callable] = []
         # argss: list[list[Any]] = []
         logger.info('[GEOS-CF] 开始下载')
         for i in range(24):
             # tasks.append(self._download_task)
             target_dt = self.dt + timedelta(hours=i)
-            self._download_task(target_dt, df_queue, execute_dt)
+            self._download_task(target_dt, df_queue)
             # argss.append([target_dt, df_queue, execute_dt])
         # run_in_thread_pool(tasks=tasks, argss=argss)
         # 3. 保存
